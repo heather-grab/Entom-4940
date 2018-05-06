@@ -2,10 +2,10 @@
 title: "Fourth Corner and RQL Analysis"
 author: "Heather Grab"
 date: "April 24, 2018"
-output:
-  html_document: default
-toc: true
-toc_float: true
+output:  
+  html_document:  
+    toc: true  
+    toc_float: true 
 ---
 
 
@@ -20,7 +20,7 @@ library(lattice)
 ```
 
 
-#### What types of questions/data is this method good for? 
+## What is this method good for? 
 
 short answer: When you want to know what kinds of organisms occur where and why
 
@@ -37,11 +37,13 @@ Q: the species by traits martix that describes the traits of each species (can b
 L: the site by species matrix that describes which species occur at each site (can be quanitative or presence/absence)
 
 
-#### Load the example dataset 
-##### About the example data
-The example dataset is drawn from a study of pollinator communities across 3 different cropping systems in Northeastern USA. Our analysis will focus on just one of the three crops (watermelon) and its 45 pollinator species. 
+## Load the example dataset 
+### About the example data {.tabset}
+The example dataset is drawn from a study of pollinator communities across 3 different cropping systems in Northeastern USA care of [Bartomeus et al. 2017](https://onlinelibrary.wiley.com/doi/abs/10.1111/oik.04507).  Our analysis will focus on just one of the three crops (watermelon) and its 45 pollinator species. 
 
-First our R matrix
+First...
+
+###The R matrix
 this is the site by environment matrix that includes data on the land cover (agricultrual and open natural habitats) at 300m and 1500m from the 17 sites. There are are few other variables included in the dataset that were not analyzed in the original manuscript so we will subset those out for the moment.
 
 ```{r load data}
@@ -49,7 +51,7 @@ envi <- read.csv("envi_watermelon.csv", row.names = 1); envi=envi[,c(1,2,5,6)] #
 head(envi)
 ```
 
-The Q matrix
+###The Q matrix
 this is the species by trait matrix which includes a mix of categorical and quantitiative traits for each species. Missing data for any species will cause the model to fail
 
 ```{r}
@@ -58,14 +60,14 @@ head(traits)
 ```
 
 
-The L matrix
+###The L matrix
 this is the site by species matrix. The default fourth corner model assumed a negative binomial error distribution so all values should be integer. 
 ```{r}
 abd <- read.csv("abd_watermelon.csv", row.names = 1)
 abd[1:5, 1:5] # just viewing the first 5 rows and 5 columns
 ```
 
-#### Exploring the data
+## Exploring the data
 
 We can look the the relative abundance distributions for the community using the built in plotting functions
 
@@ -92,7 +94,7 @@ plot(bee_spp~envi2$habitat, tranformation = "no" )
 By default the plot will only include the species with the highest total abundances. For each species plotted we can get a sense of whether they are more or less abundant in particular habitat types. 
 
 
-#### Multivariate GLM
+## Multivariate GLM
 
 Do communities differ across land use gradients?
 
@@ -130,7 +132,7 @@ anova(mod2, p.uni="adjusted", nBoot=99)
 
 
 
-#### Multivariate SDM
+## Multivariate SDM
 
 The simplest form is a multivariate species distribution model (SDM) which predicts the abundance of each species based only on the environmental variables. The form of this model is essentially a negative binomial GLM with species as a fixed effect and a species by envi interaction. 
 
@@ -154,6 +156,9 @@ print(plot.spp)
 ```
 
 While this is intersting for exploring the data we might guess that certain species are responding in a particular way based on their traits. 
+
+
+## Fourth Corner Analysis
 
 We can expand the analysis by adding the trait matrix and explicitly looking for the trait by environment interactions (fourth corner)
 ```{r}
@@ -199,7 +204,7 @@ print(plot.4th)
 ```
 
 
-#### adding a LASSO penalty
+### adding a LASSO penalty
 
 Given that there are many traits and even environmental factors that are not strong predictors of abundance, we can reduce the number of predictor terms in our models using various automatic model selection algorithims
 
@@ -213,6 +218,8 @@ ft1=traitglm(abd,envi,traits,method="glm1path")
 ft1$fourth #notice LASSO penalty has shrunk many interactions to zero
 ```
 
+
+## Plotting Fourth Corner Coefficients
 ```{r}
 library(lattice)
 a        = max( abs(ft1$fourth.corner) )
