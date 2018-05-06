@@ -1,0 +1,232 @@
+---
+title: "Fourth Corner and RQL Analysis"
+author: "Heather Grab"
+date: "April 24, 2018"
+output:
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+#### Load libraries
+```{r}
+library(mvabund)## do not compile dependencies from source
+library(lattice)
+```
+
+
+#### What types of questions/data is this method good for
+
+short answer: When you want to know what kinds of organisms occur where and why
+
+long answer: A common strategy in any field looking at “why” is to look for predictor variables that can explain the response. In the case of studying why some taxa are abundant at a site while others are not, the relevant predictors are species traits. 
+
+The core idea of the model‐based approach is to fit a predictive model for species abundance as a function of environmental variables, species traits and their interaction. The environment trait interaction coefficients can be understood as the fourth corner and describe how environmental response across taxa varies as traits vary.
+
+The essential components of a fourth corner analysis are the R, Q, and L matrices
+
+R: the site by envoronment matrix that describes the envonmental conditions at each site
+
+Q: the species by traits martix that describes the traits of each species (can be both quantitative and categorical)
+
+L: the site by species matrix that describes which species occur at each site (can be quanitative or presence/absence)
+
+
+#### Load in the example dataset
+##### About the example data
+The example dataset is drawn from a study of pollinator communities across 3 different cropping systems in Northeastern USA. Our analysis will focus on just one of the three crops (watermelon) and its 45 pollinator species. 
+
+First our R matrix
+this is the site by environment matrix that includes data on the land cover (agricultrual and open natural habitats) at 300m and 1500m from the 17 sites. There are are few other variables included in the dataset that were not analyzed in the original manuscript so we will subset those out for the moment.
+
+```{r load data}
+envi <- read.csv("envi_watermelon.csv", row.names = 1); envi=envi[,c(1,2,5,6)] ## add row.names = 1 agrument to tell R that the first column should be treated as row names
+head(envi)
+```
+
+The Q matrix
+this is the species by trait matrix which includes a mix of categorical and quantitiative traits for each species. Missing data for any species will cause the model to fail
+
+```{r}
+traits <- read.csv("traits_watermelon.csv",row.names = 1)
+head(traits)
+```
+
+
+The L matrix
+this is the site by species matrix. The default fourth corner model assumed a negative binomial error distribution so all values should be integer. 
+```{r}
+abd <- read.csv("abd_watermelon.csv", row.names = 1)
+abd[1:5, 1:5] # just viewing the first 5 rows and 5 columns
+```
+
+#### Exploring the data
+
+
+
+We can look the the relative abundance distributions for the community using the built in plotting functions
+
+We first need to convert our L matrix (site x species) to a mvabund matrix object
+```{r}
+bee_spp=mvabund(abd)
+plot(bee_spp)
+
+```
+
+
+We can partition abundances based on categorical environmental variables 
+
+Our example dataset does not have any catergorical environmental variables so we will add one
+```{r}
+envi2=envi
+envi2$habitat="field"
+envi2$habitat[1:8]<-"edge"
+envi2$habitat=as.factor(envi2$habitat)
+
+plot(bee_spp~envi2$habitat, tranformation = "no" )
+```
+
+By default the plot will only include the species with the highest total abundances. For each species plotted we can get a sense of whether they are more or less abundant in particular habitat types. 
+
+
+#### Multivariate GLM
+
+Do communities differ across land use gradients?
+
+```{r}
+mod1 <- manyglm(bee_spp ~ envi$ag_300, family="poisson")
+```
+#### Check model assumptions
+```{r}
+plot(mod1)
+```
+Clearly we see a fan pattern in the model residuals, indicating a pattern of increasing variance at high abundances
+
+Let's try a negative binomial model 
+```{r}
+mod2 <- manyglm(bee_spp ~ envi$ag_300, family="negative_binomial")
+plot(mod2)
+```
+much better
+
+#### Hypothesis testing with anova()
+We can test the multivariate hypothesis of whether species composition varied across the habitats by using the anova function. This gives an analysis of deviance table where we use likelihood ratio tests and resampled p values to look for a significant effect of Habitat on the community data.
+
+This is a bootstrap based test that can take a while to calculate on large datasets so for now we will set the number of reps to 99
+```{r}
+anova(mod2, nBoot=99)
+```
+
+We can see from the output that the cover of agriculture at the 300m radius does not drive differences in community composition.
+
+
+Using the p.uni="adjusted" agrument we determine whether any individual species is influenced by agricultural cover
+```{r}
+anova(mod2, p.uni="adjusted", nBoot=99)
+```
+
+
+
+#### Multivariate SDM
+
+The simplest form is a multivariate species distribution model (SDM) which predicts the abundance of each species based only on the environmental variables. The form of this model is essentially a negative binomial GLM with species as a fixed effect and a species by envi interaction. 
+
+if your data are a binomial, average abundace per site, coverage per m^2 or some other non-integer value, the form of the model can be adjusted using the family and method parameters. 
+
+```{r}
+sdm_fit=traitglm(abd,envi)
+```
+View the standardized model coefficients for each species. Because all predictors are standardised, you can interpret the size of coefficients as a measure of importance. As interaction terms, the fourth coefficients each have an interpretation as the amount by which a unit (1 sd) change in the trait variable changes the slope of the relationship between abundance and a given environmental variable.
+```{r}
+sdm_fit$fourth
+```
+
+```{r}
+a        = max( abs(sdm_fit$fourth.corner) )
+colort   = colorRampPalette(c("blue","white","red")) 
+plot.spp = levelplot(t(as.matrix(sdm_fit$fourth.corner)), xlab="Environmental Variables",
+ ylab="Species", col.regions=colort(100), at=seq(-a, a, length=100),
+ scales = list( x= list(rot = 45)))
+print(plot.spp)
+```
+
+While this is intersting for exploring the data we might guess that certain species are responding in a particular way based on their traits. 
+
+We can expand the analysis by adding the trait matrix and explicitly looking for the trait by environment interactions (fourth corner)
+```{r}
+fit=traitglm(abd,envi,traits)
+fit$fourth #print fourth corner terms
+```
+
+We can evaluate whether the data meet model assumptions using the plot function 
+
+```{r}
+plot(fit)
+```
+
+
+
+```{r}
+anova(fit, nBoot = 10)
+```
+
+we can see from the output that the model we are fitting is pretty complex 
+
+we also see that the overall trait by environment interaction term is not supported (P>0.05)
+
+We can also explore the effects of individual trait by environment interactions using the summary function 
+
+** Warning this is slow **
+
+we will limilt the number of bootstrap reps to 10 (nBoot=10) but 1000 should be using for final analyses
+
+```{r}
+summary(fit, nBoot=10) 
+```
+
+We can plot the results in a heatmap similar to the SDM plot above
+```{r}
+a        = max( abs(fit$fourth.corner) )
+colort   = colorRampPalette(c("blue","white","red")) 
+plot.4th = levelplot(t(as.matrix(fit$fourth.corner)), xlab="Environmental Variables",
+ ylab="Species traits", col.regions=colort(100), at=seq(-a, a, length=100),
+ scales = list( x= list(rot = 45)))
+print(plot.4th)
+
+```
+
+
+#### adding a LASSO penalty
+
+Given that there are many traits and even environmental factors that are not strong predictors of abundance, we can reduce the number of predictor terms in our models using various automatic model selection algorithims
+
+LASSO is an optimization algorithm (Least Absolute Shrinkage and Selection Operator) that performs both variable selection and regularization in order to enhance the prediction accuracy and interpretability of the statistical model it produces. 
+
+LASSO is a great machine learning tool for dealing with complex datasets and had broad applications to many statistical methods. 
+Luck for us, LASSO comes baked in to the mvabund package. All we need to do is add the method="glm1path" argument
+
+```{r}
+ft1=traitglm(abd,envi,traits,method="glm1path")
+ft1$fourth #notice LASSO penalty has shrunk many interactions to zero
+```
+
+```{r}
+library(lattice)
+a        = max( abs(ft1$fourth.corner) )
+colort   = colorRampPalette(c("blue","white","red")) 
+plot.4th = levelplot(t(as.matrix(ft1$fourth.corner)), xlab="Environmental Variables",
+ ylab="Species traits", col.regions=colort(100), at=seq(-a, a, length=100),
+ scales = list( x= list(rot = 45)))
+print(plot.4th)
+```
+
+
+
+
+
+
+
+

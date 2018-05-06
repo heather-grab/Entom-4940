@@ -1,0 +1,12 @@
+base
+RWordPress
+knitr
+dplyr
+ggplot2
+nlme
+Matrix
+lme4
+AICcmodavg
+bindrcpp
+mvabund
+lattice
