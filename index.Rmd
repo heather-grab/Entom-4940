@@ -1,27 +1,35 @@
 ---
-title: "Entom 4940"
+title: "   ."
 ---
 
+  
+    
+      
+       
 In spring 2018, I taught the first iteration of Advanced Statistical Methods in Ecology, a course designed to introduce upper level undergraduates and graduate students to the analytical methods that are often required for ecological and entomological data sets.
 
 In short, the goals of the course were to help students develop the confidence to conduct an interpret analyses on datasets that require more than anova or linear regression.
 
-Learning Outcomes | After completing this course students will be able to:
-1| flexibly manipulate and summarize datasets
-2| create publication ready graphics
-3| choose statistical methods appropriate to their dataset and question
-4| evaluate the application of common statistical tests when reading and reviewing the literature
+>__Learning Outcomes__ | After completing this course students will be able to:
+>
+>1| flexibly manipulate and summarize datasets   
+>2| create publication ready graphics   
+>3| choose statistical methods appropriate to their dataset and question  
+>4| evaluate the application of common statistical tests when reading and reviewing the literature  
 
-#Tutorials
-## Data Carpentry
-## Functions and Loops
-## R Markdown and ggplot2
-## [Mixed Effects Models](http://heather-grab.github.io/Entom-4940/mixed.html)
-## Generalized Linear Models
-## Polynomials and Non Linear Models
-## Structural Equation Models
-## Survival Analysis
-## Machine Learning Techniques
-## Cluster Analysis
-## [Fourth Corner and RQL Analysis](http://heather-grab.github.io/Entom-4940/rql.html)
-## Permutation and Randomization Tests
+***
+
+##__Tutorials__
+
+### Data Carpentry
+### Functions and Loops
+### R Markdown and ggplot2
+### [Mixed Effects Models](http://heather-grab.github.io/Entom-4940/mixed.html)
+### Generalized Linear Models
+### Polynomials and Non Linear Models
+### Structural Equation Models
+### Survival Analysis
+### Machine Learning Techniques
+### Cluster Analysis
+### [Fourth Corner and RQL Analysis](http://heather-grab.github.io/Entom-4940/rql.html)
+### Permutation and Randomization Tests
