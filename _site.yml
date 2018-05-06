@@ -1,0 +1,9 @@
+name: "Entom 4940: Advanced Statistical Methods in Ecology"
+output_dir: "."
+navbar:
+  title: "Entom 4940: Advanced Statistical Methods in Ecology"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
