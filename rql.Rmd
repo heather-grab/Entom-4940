@@ -24,7 +24,7 @@ library(lattice)
 
 short answer: When you want to know what kinds of organisms occur where and why
 
-long answer: A common strategy in any field looking at “why” is to look for predictor variables that can explain the response. In the case of studying why some taxa are abundant at a site while others are not, the relevant predictors are species traits. 
+long answer: A common strategy in any field is to look for predictor variables that can explain the response. In the case of studying why some taxa are abundant at a site while others are not, the relevant predictors are species traits. 
 
 The core idea of this approach is to fit a predictive model for species abundance as a function of environmental variables, species traits and their interaction. The environment trait interaction coefficients can be understood as the fourth corner and describes how environmental response across taxa varies as traits vary.
 

@@ -1,10 +1,13 @@
 ---
-title: "Mixed models"
-author1: "Elizabeth Bergen"
-author2: "Kara Fikrig"
-date: "February 24, 2018"
-output: html_document
+title: "Mixed Effects Models"
+author: "Elizabeth Bergen, Kara Fikrig & Heather Grab"
+date: "April 24, 2018"
+output:  
+  html_document:  
+    toc: true  
+    toc_float: true 
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -99,35 +102,13 @@ Let's take a look at the data:
 str(data)
 summary(data)
 ```
-
-It is important to visually examine your data to ensure you select an appropriate analysis. For mixed models, your response variable should be normal, but your predictor variables don't have to be. Check that the response variable is normal:
-
-```{r plot response distribution}
-ggplot(data, aes(IQ)) + geom_histogram() + ggtitle("Distribution of the response variable")
-```
-
-This looks pretty good. Now let's check whether we want to rescale any of the variables. Age, BMI, and Pb are continuous variables and so seem like good candidates.
-
-```{r center and scale}
-ggplot(data, aes(age)) + geom_histogram()
-ggplot(data, aes(BMI)) + geom_histogram()
-ggplot(data, aes(Pb)) + geom_histogram()
-
-data <- 
-  data %>% 
-  mutate(
-    age = as.numeric(scale(age)), 
-    BMI = as.numeric(scale(BMI)), 
-    Pb = as.numeric(scale(Pb))
-  )
-
-```
+Variables with mean near 0 were already standardized using the `scale()` function
 
 # Analysis
 
-## Plain linear model
+## Linear model
 
-Does the distance category of a school from a foundry, which could potentially be causing lead pollution, reduce the IQ of schoolchildren going to that school?
+Q| Does the distance category of a school from a foundry, which could potentially be causing lead pollution, reduce the IQ of schoolchildren going to that school?
 
 Just looking at a linear model of data from 14 schools near the foundry, you would think so, but there are some problems with this analysis.
 
@@ -141,7 +122,7 @@ anova(m.linear)
 
 This analysis yields incorrect standard errors because it violates the assumption that the residuals are independent. The subjects are grouped into schools in this dataset, and that grouping is not accounted for by a linear model. Note the inflated degrees of freedom for distcat that result from its pesudoreplication.
 
-## Mixed modeling
+## Mixed model
 
 Because the data are hierarchical, with multiple measurements at multiple levels of organization (e.g. school and student), a mixed model would be better here. We'll use the `nlme` package for our models, but the `lme4` package has a very similar format.
 
@@ -195,6 +176,13 @@ m4 <- lme(IQ ~ sex + age + ses + Pb + distcat, random = ~age|school, na.action =
 summary(m4)
 
 ```
+
+check that the model fit is improved
+
+```{r}
+anova(m3,m4)
+```
+no improvment observed based on a liklihood ratio test. According to the principles of parsimony, the p-value would need to be below 0.05 in order to justify keeping our more complex model. 
 
 ### Interactions
 

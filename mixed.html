@@ -9,10 +9,11 @@
 <meta name="generator" content="pandoc" />
 
 
+<meta name="author" content="Elizabeth Bergen, Kara Fikrig &amp; Heather Grab" />
 
-<meta name="date" content="2018-02-24" />
+<meta name="date" content="2018-04-24" />
 
-<title>Mixed models</title>
+<title>Mixed Effects Models</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,6 +21,9 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -164,6 +168,101 @@ $(document).ready(function () {
 
 
 
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
 
 
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
@@ -196,8 +295,9 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Mixed models</h1>
-<h4 class="date"><em>February 24, 2018</em></h4>
+<h1 class="title toc-ignore">Mixed Effects Models</h1>
+<h4 class="author"><em>Elizabeth Bergen, Kara Fikrig &amp; Heather Grab</em></h4>
+<h4 class="date"><em>April 24, 2018</em></h4>
 
 </div>
 
@@ -285,36 +385,13 @@ $(document).ready(function () {
 ##  3rd Qu.:1.0000   3rd Qu.:11.000   3rd Qu.:17.83   3rd Qu.:14.30  
 ##  Max.   :1.0000   Max.   :14.000   Max.   :29.21   Max.   :43.82  
 ##                                    NA&#39;s   :3       NA&#39;s   :4</code></pre>
-<p>It is important to visually examine your data to ensure you select an appropriate analysis. For mixed models, your response variable should be normal, but your predictor variables don’t have to be. Check that the response variable is normal:</p>
-<pre class="r"><code>ggplot(data, aes(IQ)) + geom_histogram() + ggtitle(&quot;Distribution of the response variable&quot;)</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
-<pre><code>## Warning: Removed 7 rows containing non-finite values (stat_bin).</code></pre>
-<p><img src="mixed_files/figure-html/plot%20response%20distribution-1.png" width="672" /></p>
-<p>This looks pretty good. Now let’s check whether we want to rescale any of the variables. Age, BMI, and Pb are continuous variables and so seem like good candidates.</p>
-<pre class="r"><code>ggplot(data, aes(age)) + geom_histogram()</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
-<p><img src="mixed_files/figure-html/center%20and%20scale-1.png" width="672" /></p>
-<pre class="r"><code>ggplot(data, aes(BMI)) + geom_histogram()</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite values (stat_bin).</code></pre>
-<p><img src="mixed_files/figure-html/center%20and%20scale-2.png" width="672" /></p>
-<pre class="r"><code>ggplot(data, aes(Pb)) + geom_histogram()</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
-<pre><code>## Warning: Removed 4 rows containing non-finite values (stat_bin).</code></pre>
-<p><img src="mixed_files/figure-html/center%20and%20scale-3.png" width="672" /></p>
-<pre class="r"><code>data &lt;- 
-  data %&gt;% 
-  mutate(
-    age = as.numeric(scale(age)), 
-    BMI = as.numeric(scale(BMI)), 
-    Pb = as.numeric(scale(Pb))
-  )</code></pre>
+<p>Variables with mean near 0 were already standardized using the <code>scale()</code> function</p>
 </div>
 <div id="analysis" class="section level1">
 <h1>Analysis</h1>
-<div id="plain-linear-model" class="section level2">
-<h2>Plain linear model</h2>
-<p>Does the distance category of a school from a foundry, which could potentially be causing lead pollution, reduce the IQ of schoolchildren going to that school?</p>
+<div id="linear-model" class="section level2">
+<h2>Linear model</h2>
+<p>Q| Does the distance category of a school from a foundry, which could potentially be causing lead pollution, reduce the IQ of schoolchildren going to that school?</p>
 <p>Just looking at a linear model of data from 14 schools near the foundry, you would think so, but there are some problems with this analysis.</p>
 <pre class="r"><code>m.linear &lt;- lm(IQ ~ sex + age + ses + Pb + distcat, data = data)
 summary(m.linear)</code></pre>
@@ -328,12 +405,12 @@ summary(m.linear)</code></pre>
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   99.170      1.727  57.410  &lt; 2e-16 ***
-## sex           -2.821      1.448  -1.949  0.05200 .  
-## age           -1.384      0.736  -1.880  0.06073 .  
-## ses            2.046      1.314   1.557  0.12029    
-## Pb            -2.135      0.814  -2.623  0.00903 ** 
-## distcat        4.388      1.649   2.662  0.00807 ** 
+## (Intercept) 128.6055    13.7790   9.333  &lt; 2e-16 ***
+## sex          -2.8208     1.4476  -1.949  0.05200 .  
+## age          -3.6602     1.9464  -1.880  0.06073 .  
+## ses           2.0456     1.3141   1.557  0.12029    
+## Pb           -0.3352     0.1278  -2.623  0.00903 ** 
+## distcat       4.3880     1.6487   2.662  0.00807 ** 
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -356,8 +433,8 @@ summary(m.linear)</code></pre>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>This analysis yields incorrect standard errors because it violates the assumption that the residuals are independent. The subjects are grouped into schools in this dataset, and that grouping is not accounted for by a linear model. Note the inflated degrees of freedom for distcat that result from its pesudoreplication.</p>
 </div>
-<div id="mixed-modeling" class="section level2">
-<h2>Mixed modeling</h2>
+<div id="mixed-model" class="section level2">
+<h2>Mixed model</h2>
 <p>Because the data are hierarchical, with multiple measurements at multiple levels of organization (e.g. school and student), a mixed model would be better here. We’ll use the <code>nlme</code> package for our models, but the <code>lme4</code> package has a very similar format.</p>
 <p>To estimate the variablity in IQ within vs between schools, we can run a model with only the random effect <code>school</code>. This lets the intercept vary with <code>school</code>.</p>
 <pre class="r"><code># using nlme package
@@ -415,7 +492,7 @@ summary(m3)</code></pre>
 <pre><code>## Linear mixed-effects model fit by REML
 ##  Data: data 
 ##        AIC      BIC    logLik
-##   3573.304 3605.795 -1778.652
+##   3575.062 3607.554 -1779.531
 ## 
 ## Random effects:
 ##  Formula: ~1 | school
@@ -423,20 +500,20 @@ summary(m3)</code></pre>
 ## StdDev:    3.847656 14.49946
 ## 
 ## Fixed effects: IQ ~ sex + age + ses + Pb + distcat 
-##                Value Std.Error  DF  t-value p-value
-## (Intercept) 99.79718 2.3134839 417 43.13718  0.0000
-## sex         -2.71006 1.4212686 417 -1.90679  0.0572
-## age         -1.37318 0.7231642 417 -1.89886  0.0583
-## ses          1.94821 1.2970263 417  1.50206  0.1338
-## Pb          -1.94705 0.8068593 417 -2.41313  0.0162
-## distcat      4.18923 2.6462699  12  1.58307  0.1394
+##                 Value Std.Error  DF   t-value p-value
+## (Intercept) 128.67968 13.655491 417  9.423292  0.0000
+## sex          -2.71006  1.421269 417 -1.906792  0.0572
+## age          -3.63146  1.912447 417 -1.898855  0.0583
+## ses           1.94821  1.297026 417  1.502057  0.1338
+## Pb           -0.30564  0.126659 417 -2.413125  0.0162
+## distcat       4.18923  2.646270  12  1.583070  0.1394
 ##  Correlation: 
 ##         (Intr) sex    age    ses    Pb    
-## sex     -0.295                            
-## age     -0.031  0.011                     
-## ses     -0.436 -0.020  0.052              
-## Pb      -0.232  0.080 -0.029  0.041       
-## distcat -0.648  0.056  0.011 -0.039  0.276
+## sex     -0.070                            
+## age     -0.975  0.011                     
+## ses     -0.129 -0.020  0.052              
+## Pb      -0.122  0.080 -0.029  0.041       
+## distcat -0.151  0.056  0.011 -0.039  0.276
 ## 
 ## Standardized Within-Group Residuals:
 ##         Min          Q1         Med          Q3         Max 
@@ -456,38 +533,44 @@ summary(m4)</code></pre>
 <pre><code>## Linear mixed-effects model fit by REML
 ##  Data: data 
 ##        AIC      BIC    logLik
-##   3576.195 3616.809 -1778.097
+##   3577.953 3618.568 -1778.976
 ## 
 ## Random effects:
 ##  Formula: ~age | school
 ##  Structure: General positive-definite, Log-Cholesky parametrization
 ##             StdDev    Corr  
-## (Intercept)  3.820315 (Intr)
-## age          1.562607 -0.509
-## Residual    14.429239       
+## (Intercept) 30.820707 (Intr)
+## age          4.132281 -0.994
+## Residual    14.429234       
 ## 
 ## Fixed effects: IQ ~ sex + age + ses + Pb + distcat 
-##                 Value Std.Error  DF  t-value p-value
-## (Intercept) 100.23237 2.2887284 417 43.79391  0.0000
-## sex          -2.83425 1.4207802 417 -1.99485  0.0467
-## age          -1.61320 0.8498488 417 -1.89821  0.0584
-## ses           1.82189 1.2962083 417  1.40555  0.1606
-## Pb           -1.91173 0.8047680 417 -2.37551  0.0180
-## distcat       3.69328 2.5751671  12  1.43419  0.1771
+##                 Value Std.Error  DF   t-value p-value
+## (Intercept) 133.45693 16.194295 417  8.240984  0.0000
+## sex          -2.83424  1.420780 417 -1.994849  0.0467
+## age          -4.26620  2.247452 417 -1.898236  0.0584
+## ses           1.82189  1.296208 417  1.405554  0.1606
+## Pb           -0.30010  0.126330 417 -2.375505  0.0180
+## distcat       3.69322  2.575211  12  1.434141  0.1771
 ##  Correlation: 
 ##         (Intr) sex    age    ses    Pb    
-## sex     -0.298                            
-## age     -0.150  0.016                     
-## ses     -0.447 -0.020  0.047              
-## Pb      -0.235  0.075 -0.027  0.045       
-## distcat -0.641  0.058  0.014 -0.029  0.284
+## sex     -0.065                            
+## age     -0.983  0.016                     
+## ses     -0.113 -0.020  0.047              
+## Pb      -0.101  0.075 -0.027  0.045       
+## distcat -0.131  0.058  0.014 -0.029  0.284
 ## 
 ## Standardized Within-Group Residuals:
 ##         Min          Q1         Med          Q3         Max 
-## -3.43016244 -0.62288497  0.07439884  0.66379767  2.27899865 
+## -3.43017187 -0.62288526  0.07439453  0.66379549  2.27900486 
 ## 
 ## Number of Observations: 435
 ## Number of Groups: 14</code></pre>
+<p>check that the model fit is improved</p>
+<pre class="r"><code>anova(m3,m4)</code></pre>
+<pre><code>##    Model df      AIC      BIC    logLik   Test  L.Ratio p-value
+## m3     1  8 3575.062 3607.554 -1779.531                        
+## m4     2 10 3577.953 3618.568 -1778.976 1 vs 2 1.108999  0.5744</code></pre>
+<p>no improvment observed based on a liklihood ratio test. According to the principles of parsimony, the p-value would need to be below 0.05 in order to justify keeping our more complex model.</p>
 </div>
 <div id="interactions" class="section level3">
 <h3>Interactions</h3>
@@ -497,7 +580,7 @@ summary(m5)</code></pre>
 <pre><code>## Linear mixed-effects model fit by REML
 ##  Data: data 
 ##        AIC      BIC    logLik
-##   3705.574 3730.176 -1846.787
+##   3701.684 3726.286 -1844.842
 ## 
 ## Random effects:
 ##  Formula: ~1 | school
@@ -505,16 +588,16 @@ summary(m5)</code></pre>
 ## StdDev:    5.102384 14.51071
 ## 
 ## Fixed effects: IQ ~ sex + age + sex * age 
-##                 Value Std.Error  DF  t-value p-value
-## (Intercept) 103.64198 1.6594041 433 62.45735  0.0000
-## sex          -2.56997 1.3914538 433 -1.84696  0.0654
-## age          -1.59131 0.9417289 433 -1.68977  0.0918
-## sex:age       0.16938 1.3936810 433  0.12153  0.9033
+##                 Value Std.Error  DF   t-value p-value
+## (Intercept) 132.86985 17.377401 433  7.646129  0.0000
+## sex          -5.68098 25.657878 433 -0.221413  0.8249
+## age          -4.20830  2.490453 433 -1.689772  0.0918
+## sex:age       0.44793  3.685666 433  0.121533  0.9033
 ##  Correlation: 
 ##         (Intr) sex    age   
-## sex     -0.372              
-## age     -0.001  0.003       
-## sex:age  0.002 -0.016 -0.679
+## sex     -0.676              
+## age     -0.995  0.677       
+## sex:age  0.676 -0.999 -0.679
 ## 
 ## Standardized Within-Group Residuals:
 ##         Min          Q1         Med          Q3         Max 
@@ -532,7 +615,7 @@ summary(m6)</code></pre>
 <pre><code>## Linear mixed-effects model fit by REML
 ##  Data: data 
 ##        AIC      BIC    logLik
-##   3603.355 3635.903 -1793.678
+##   3599.465 3632.013 -1791.733
 ## 
 ## Random effects:
 ##  Formula: ~1 | school
@@ -540,20 +623,20 @@ summary(m6)</code></pre>
 ## StdDev:    4.061579 14.59614
 ## 
 ## Fixed effects: IQ ~ sex + age + ses + distcat + sex * age 
-##                Value Std.Error  DF  t-value p-value
-## (Intercept) 98.61655 2.3181073 420 42.54184  0.0000
-## sex         -2.47411 1.4194741 420 -1.74298  0.0821
-## age         -1.53614 0.9518906 420 -1.61377  0.1073
-## ses          1.92242 1.2993137 420  1.47957  0.1397
-## distcat      6.00745 2.6422159  12  2.27364  0.0422
-## sex:age      0.18848 1.4375219 420  0.13112  0.8957
+##                 Value Std.Error  DF   t-value p-value
+## (Intercept) 126.83108 17.718289 420  7.158202  0.0000
+## sex          -5.93605 26.457664 420 -0.224360  0.8226
+## age          -4.06239  2.517327 420 -1.613773  0.1073
+## ses           1.92242  1.299314 420  1.479569  0.1397
+## distcat       6.00745  2.642216  12  2.273642  0.0422
+## sex:age       0.49846  3.801605 420  0.131118  0.8957
 ##  Correlation: 
 ##         (Intr) sex    age    ses    distct
-## sex     -0.283                            
-## age     -0.036  0.006                     
-## ses     -0.427 -0.018  0.054              
-## distcat -0.632  0.035  0.013 -0.049       
-## sex:age  0.006 -0.011 -0.662 -0.006 -0.002
+## sex     -0.655                            
+## age     -0.991  0.661                     
+## ses     -0.110  0.005  0.054              
+## distcat -0.096  0.004  0.013 -0.049       
+## sex:age  0.654 -0.999 -0.662 -0.006 -0.002
 ## 
 ## Standardized Within-Group Residuals:
 ##         Min          Q1         Med          Q3         Max 
@@ -565,8 +648,8 @@ summary(m6)</code></pre>
 summary(m7)</code></pre>
 <pre><code>## Linear mixed-effects model fit by REML
 ##  Data: data 
-##        AIC     BIC    logLik
-##   3603.935 3632.43 -1794.968
+##       AIC      BIC    logLik
+##   3601.99 3630.485 -1793.995
 ## 
 ## Random effects:
 ##  Formula: ~1 | school
@@ -574,18 +657,18 @@ summary(m7)</code></pre>
 ## StdDev:    4.054413 14.57974
 ## 
 ## Fixed effects: IQ ~ sex + age + ses + distcat 
-##                Value Std.Error  DF  t-value p-value
-## (Intercept) 98.61437 2.3146960 421 42.60359  0.0000
-## sex         -2.47208 1.4177821 421 -1.74362  0.0820
-## age         -1.45352 0.7126513 421 -2.03960  0.0420
-## ses          1.92354 1.2978215 421  1.48213  0.1391
-## distcat      6.00839 2.6380622  12  2.27758  0.0419
+##                 Value Std.Error  DF   t-value p-value
+## (Intercept) 125.31154 13.388306 421  9.359775  0.0000
+## sex          -2.47208  1.417782 421 -1.743624  0.0820
+## age          -3.84392  1.884645 421 -2.039599  0.0420
+## ses           1.92354  1.297822 421  1.482133  0.1391
+## distcat       6.00839  2.638062  12  2.277578  0.0419
 ##  Correlation: 
 ##         (Intr) sex    age    ses   
-## sex     -0.283                     
-## age     -0.042 -0.002              
-## ses     -0.428 -0.018  0.067       
-## distcat -0.632  0.035  0.015 -0.049
+## sex     -0.047                     
+## age     -0.985 -0.002              
+## ses     -0.140 -0.018  0.067       
+## distcat -0.124  0.035  0.015 -0.049
 ## 
 ## Standardized Within-Group Residuals:
 ##         Min          Q1         Med          Q3         Max 
@@ -598,7 +681,7 @@ summary(m8)</code></pre>
 <pre><code>## Linear mixed-effects model fit by REML
 ##  Data: data 
 ##        AIC      BIC    logLik
-##   3699.696 3724.298 -1843.848
+##   3697.751 3722.353 -1842.876
 ## 
 ## Random effects:
 ##  Formula: ~1 | school
@@ -606,16 +689,16 @@ summary(m8)</code></pre>
 ## StdDev:    4.187035 14.49864
 ## 
 ## Fixed effects: IQ ~ sex + age + distcat 
-##                 Value Std.Error  DF  t-value p-value
-## (Intercept) 100.08993 2.1238104 434 47.12752  0.0000
-## sex          -2.50206 1.3899761 434 -1.80008  0.0725
-## age          -1.49630 0.6905278 434 -2.16689  0.0308
-## distcat       6.11356 2.6791162  12  2.28193  0.0415
+##                 Value Std.Error  DF   t-value p-value
+## (Intercept) 127.57274 12.888083 434  9.898504  0.0000
+## sex          -2.50206  1.389976 434 -1.800077  0.0725
+## age          -3.95704  1.826139 434 -2.166889  0.0308
+## distcat       6.11356  2.679116  12  2.281933  0.0415
 ##  Correlation: 
 ##         (Intr) sex    age   
-## sex     -0.320              
-## age     -0.014 -0.011       
-## distcat -0.725  0.041  0.019
+## sex     -0.042              
+## age     -0.986 -0.011       
+## distcat -0.139  0.041  0.019
 ## 
 ## Standardized Within-Group Residuals:
 ##         Min          Q1         Med          Q3         Max 
@@ -627,8 +710,8 @@ summary(m8)</code></pre>
 summary(m9)</code></pre>
 <pre><code>## Linear mixed-effects model fit by REML
 ##  Data: data 
-##        AIC      BIC    logLik
-##   3703.425 3723.938 -1846.712
+##       AIC      BIC   logLik
+##   3701.48 3721.993 -1845.74
 ## 
 ## Random effects:
 ##  Formula: ~1 | school
@@ -636,14 +719,14 @@ summary(m9)</code></pre>
 ## StdDev:    4.261853 14.53057
 ## 
 ## Fixed effects: IQ ~ age + distcat 
-##                Value Std.Error  DF  t-value p-value
-## (Intercept) 98.87479 2.0397098 435 48.47493  0.0000
-## age         -1.50892 0.6920584 435 -2.18034  0.0298
-## distcat      6.30695 2.7130164  12  2.32470  0.0384
+##                 Value Std.Error  DF   t-value p-value
+## (Intercept) 126.58946 12.909473 435  9.805935  0.0000
+## age          -3.99042  1.830186 435 -2.180338  0.0298
+## distcat       6.30695  2.713016  12  2.324701  0.0384
 ##  Correlation: 
 ##         (Intr) age   
-## age     -0.018       
-## distcat -0.752  0.020
+## age     -0.987       
+## distcat -0.138  0.020
 ## 
 ## Standardized Within-Group Residuals:
 ##        Min         Q1        Med         Q3        Max 
@@ -662,6 +745,8 @@ summary(m9)</code></pre>
 
 
 
+</div>
+</div>
 
 </div>
 
