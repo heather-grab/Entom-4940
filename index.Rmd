@@ -1,10 +1,10 @@
 ---
-title: "   ."
+title: ""
 ---
 
-  
-    
-      
+  <span style="color:white">white</span>
+    <span style="color:white">white</span>
+      <span style="color:white">white</span>
        
 In spring 2018, I taught the first iteration of Advanced Statistical Methods in Ecology, a course designed to introduce upper level undergraduates and graduate students to the analytical methods that are often required for ecological and entomological data sets.
 
@@ -19,8 +19,8 @@ In short, the goals of the course were to help students develop the confidence t
 
 ***
 
-##__Tutorials__
-
+##__Tutorials__:
+________________
 ### Data Carpentry
 ### Functions and Loops
 ### R Markdown and ggplot2

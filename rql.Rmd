@@ -4,6 +4,8 @@ author: "Heather Grab"
 date: "April 24, 2018"
 output:
   html_document: default
+toc: true
+toc_float: true
 ---
 
 
@@ -11,20 +13,20 @@ output:
 knitr::opts_chunk$set(cache=TRUE)
 ```
 
-#### Load libraries
+#### Load libraries {.tabset}
 ```{r}
 library(mvabund)## do not compile dependencies from source
 library(lattice)
 ```
 
 
-#### What types of questions/data is this method good for
+#### What types of questions/data is this method good for? 
 
 short answer: When you want to know what kinds of organisms occur where and why
 
 long answer: A common strategy in any field looking at “why” is to look for predictor variables that can explain the response. In the case of studying why some taxa are abundant at a site while others are not, the relevant predictors are species traits. 
 
-The core idea of the model‐based approach is to fit a predictive model for species abundance as a function of environmental variables, species traits and their interaction. The environment trait interaction coefficients can be understood as the fourth corner and describe how environmental response across taxa varies as traits vary.
+The core idea of this approach is to fit a predictive model for species abundance as a function of environmental variables, species traits and their interaction. The environment trait interaction coefficients can be understood as the fourth corner and describes how environmental response across taxa varies as traits vary.
 
 The essential components of a fourth corner analysis are the R, Q, and L matrices
 
@@ -35,7 +37,7 @@ Q: the species by traits martix that describes the traits of each species (can b
 L: the site by species matrix that describes which species occur at each site (can be quanitative or presence/absence)
 
 
-#### Load in the example dataset
+#### Load the example dataset 
 ##### About the example data
 The example dataset is drawn from a study of pollinator communities across 3 different cropping systems in Northeastern USA. Our analysis will focus on just one of the three crops (watermelon) and its 45 pollinator species. 
 
@@ -64,8 +66,6 @@ abd[1:5, 1:5] # just viewing the first 5 rows and 5 columns
 ```
 
 #### Exploring the data
-
-
 
 We can look the the relative abundance distributions for the community using the built in plotting functions
 
