@@ -1,4 +1,4 @@
-name: "Entom 4940: Advanced Statistical Methods in Ecology"
+name: "Entom-4940"
 output_dir: "."
 navbar:
   title: "Entom 4940: Advanced Statistical Methods in Ecology"
@@ -7,3 +7,7 @@ navbar:
       href: index.html
     - text: "About"
       href: about.html
+output:
+  html_document:
+    theme: flatly
+    css: style.css
