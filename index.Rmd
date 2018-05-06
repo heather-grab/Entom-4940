@@ -4,4 +4,4 @@ title: "Entom 4940"
 
 ## Tutorials
 
-### [Mixed Effects Models] (Entom-4940/mixed.html)
+### [Mixed Effects Models] (https://heather-grab.github.io/Entom-4940/mixed.html)
