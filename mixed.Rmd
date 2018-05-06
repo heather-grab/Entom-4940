@@ -1,0 +1,239 @@
+---
+title: "Mixed models"
+author1: "Elizabeth Bergen"
+author2: "Kara Fikrig"
+date: "February 24, 2018"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)   
+library(nlme)
+library(lme4)
+library(AICcmodavg)
+```
+
+```{r, eval = F}
+setwd("F:/Google Drive/Courses and lab meetings/2018 courses/Statistical methods/entom4940/Mixed models")
+```
+
+```{r load data}
+
+data <- 
+  "exerc1.csv" %>% 
+  read.csv %>% 
+  select(IQ, sex, age, ses, distcat, school, BMI, Pb)
+
+```
+
+# Introduction to mixed models
+
+*"Mixed modeling is rarely, if ever, covered in even upper-level statistics courses. Trying to learn it on your own is like prepping to perform your own appendectomy - and just about as painful..."*
+
+-- <https://thecraftofstatisticalanalysis.com/random-intercept-random-slope-models/>
+
+Mixed models are a form of linear modeling used for hierarchical data when the response variable has a normal distribution and the predictor variables are a mix of fixed and random effects. These models are also good when data points might not be fully independent of each other, for example students grouped into school or plants grouped into quadrats. 
+
+### Repeated measures
+When analyzing data that involves repeated measures for the same subject, mixed models can be a better choice than a repeated measures ANOVA for a few reasons, including:
+
+* A mixed model can handle missing values, but a repeated measures ANOVA must drop the subject entirely if it is missing even a single measurement.
+
+* A mixed model can handle hierarchical clustering, but a repeated measures ANOVA cannot.
+
+* Repeated measures can be spaced at irregular intervals when using a mixed model.
+
+### Hierarchical data
+Grouping factors like populations, species, sites. This is different from clustered data, where individual points may belong to more than one group at the same level.
+
+An example of hierarchical data might be: 
+- students clustered 
+
+### Fixed and random effects
+
+A mixed model is a type of linear model with multiple predictor variables.
+
+`Y ~ B0 + B1 X1 + B2 X2 + ... + E`
+
+The coefficients tell you how much the response variable changes for one unit of change in the predictor variables. `B0` is the intercept and `E` the error term - the amount of variability not explained by your model.
+
+What makes something a mixed model is that the various effect terms (e.g. `B1`, `B2`) are a mix of fixed and random effects.
+
+**Fixed effects** are the same no matter how much or where you sample. For example, `sex` is a fixed effect because you have your values `male`, `female`, and `other`, and no matter how much data you sample you'll still have those same factor levels.
+
+**Random effects** are factors for which the levels are samples from a larger population about which we're trying to draw conclusions. Individual `subject ID`, for example, is a random effect because a) you could go out and sample more individuals who would be different from the ones you have and b) you're inferring something about the whole population from the sub-group included in your analysis.
+
+Another way to think about random effects is that they capture variation that exists but that isn't relevant to your question, like variation between individual subjects for which you have repeated measures. Where you have non-independence or pseudoreplication, include a random effect for that element even if it is not significant in the model, so that reviewers know you properly accounted for it.
+
+### Interaction terms
+
+An interaction occurs when one variable changes how another variable affects the response variable. When including an interaction term, be sure to leave in lower order terms for each interaction.
+
+### Nested vs crossed
+
+An example from <https://www.theanalysisfactor.com/the-difference-between-crossed-and-nested-factors/>: 
+
+Imagine you have 18 people assigned to two training groups, and their BMI is measured at three time points. There are both **crossed** and **nested** factors in this experiment.
+
+Crossed: Subject is crossed with time because every combination of subject and time point is represented by a value of BMI.
+
+Nested: Each subject is assigned to only one training group, and so not every possible combination of subject and group is represented by a value of BMI. By knowing the subject ID, you know exactly which training group they belong to. Thus subject is nested within training group.
+
+For crossed factors, you can look at an interaction term. For nested factors, you can't.
+
+### Overfitting
+
+Avoid overfitting, which occurs when your model has too small a sample size and too many predictor variables. If you do this, you'll get a warning that your model wouldn't converge. 
+
+# Data exploration and rescaling
+
+Categorical variables need to be recoded as numeric before analyzing them (as.factor is one way to do this). For example, in this data, sex is already recoded from M/F to 0/1, and socioeconomic status (ses) from low, medium, and high to 0, 1, and 2.
+
+Standardizing your explanatory variables to a mean of zero and standard deviation of one (using function `scale`) is also useful. It makes it easier to compare effect sizes because all your estimated coefficients are on the same scale. Centering in this way also helps with interpreting the intercept of your model. 
+
+Let's take a look at the data:
+
+```{r look at data}
+str(data)
+summary(data)
+```
+
+It is important to visually examine your data to ensure you select an appropriate analysis. For mixed models, your response variable should be normal, but your predictor variables don't have to be. Check that the response variable is normal:
+
+```{r plot response distribution}
+ggplot(data, aes(IQ)) + geom_histogram() + ggtitle("Distribution of the response variable")
+```
+
+This looks pretty good. Now let's check whether we want to rescale any of the variables. Age, BMI, and Pb are continuous variables and so seem like good candidates.
+
+```{r center and scale}
+ggplot(data, aes(age)) + geom_histogram()
+ggplot(data, aes(BMI)) + geom_histogram()
+ggplot(data, aes(Pb)) + geom_histogram()
+
+data <- 
+  data %>% 
+  mutate(
+    age = as.numeric(scale(age)), 
+    BMI = as.numeric(scale(BMI)), 
+    Pb = as.numeric(scale(Pb))
+  )
+
+```
+
+# Analysis
+
+## Plain linear model
+
+Does the distance category of a school from a foundry, which could potentially be causing lead pollution, reduce the IQ of schoolchildren going to that school?
+
+Just looking at a linear model of data from 14 schools near the foundry, you would think so, but there are some problems with this analysis.
+
+```{r}
+
+m.linear <- lm(IQ ~ sex + age + ses + Pb + distcat, data = data)
+summary(m.linear)
+anova(m.linear)
+
+```
+
+This analysis yields incorrect standard errors because it violates the assumption that the residuals are independent. The subjects are grouped into schools in this dataset, and that grouping is not accounted for by a linear model. Note the inflated degrees of freedom for distcat that result from its pesudoreplication.
+
+## Mixed modeling
+
+Because the data are hierarchical, with multiple measurements at multiple levels of organization (e.g. school and student), a mixed model would be better here. We'll use the `nlme` package for our models, but the `lme4` package has a very similar format.
+
+To estimate the variablity in IQ within vs between schools, we can run a model with only the random effect `school`. This lets the intercept vary with `school`.
+
+```{r nlme}
+
+# using nlme package
+
+m1 <- lme(IQ ~ 1, random = ~1|school, method = "REML", na.action = na.omit, data = data)
+summary(m1)
+
+```
+```{r lme4}
+
+# using lme4 package
+
+m2 <- lmer(IQ ~ 1 + (1|school), REML = TRUE, na.action = na.omit, data = data)
+summary(m2)
+
+```
+
+The `1`s used in these models are constants used as placeholders when you aren't using covariates there. The random covariate to the right of the bar (here, `school`) allows variation in intercept with this covariate.
+
+Parameters (like p-value, standard error, etc.) are only going to be estimated for the fixed effects, not the random effects.
+
+Let's add covariates to our model.
+
+```{r}
+
+m3 <- lme(IQ ~ sex + age + ses + Pb + distcat, random = ~1|school, na.action = na.omit, data = data)
+summary(m3)
+
+```
+
+The estimates for each fixed effect represents the change in the response variable when that fixed effect changes by one unit, while all other fixed effects are held constant at their mean value. The estimate for the intercept gives the value of the response variable when all the other fixed effects are at zero - which is why it's helpful to have centered your predictors.
+
+Check the estimated variance for the random effect. If it's indistinguishable from zero, then that random effect doesn't matter and you can do a regular linear model instead (which has only fixed effects). 
+
+Also check the correlation between fixed effects (not with the intercept) - if fixed effects are highly correlated, you have a situation called "multicollinearity." These highly correlated effects should not be included in one model together. Instead, you can make separate models that include either one or the other, and compare the models using model comparison to decide which covariate to keep.
+
+### Random slopes
+
+What about situations when there is a different relationship between the predictor and response variables across the different levels of the random factor? You can allow each random factor to vary not only in intercept but also in slope. 
+
+Here we allow each school to have its own slope of age. This will often improve the model.
+
+```{r random slope}
+
+m4 <- lme(IQ ~ sex + age + ses + Pb + distcat, random = ~age|school, na.action = na.omit, data = data)
+summary(m4)
+
+```
+
+### Interactions
+
+You can also include interaction terms as fixed effects. When using an interaction term, remember to still include the components of the interaction as individual fixed effects.
+
+```{r interaction}
+m5 <- lme(IQ ~ sex + age + sex * age, random = ~1|school, na.action = na.omit, data = data)
+summary(m5)
+```
+
+This interaction term is not very significant and so should be removed from the model.
+
+### Model comparison using p-values
+
+Check whether specific fixed and random effects are needed by comparing models. Start with your most complex model containing all your effects of interest, then drop them one by one, making a new model each time. Drop the highest-order interaction terms with the highest-order p-value first.
+
+```{r}
+m6 <- lme(IQ ~ sex + age + ses + distcat + sex * age, random = ~1|school, na.action = na.omit, data = data) 
+summary(m6)
+```
+```{r}
+m7 <- lme(IQ ~ sex + age + ses + distcat, random = ~1|school, na.action = na.omit, data = data) 
+summary(m7)
+```
+```{r}
+m8 <- lme(IQ ~ sex + age + distcat, random = ~1|school, na.action = na.omit, data = data) 
+summary(m8)
+```
+
+
+
+```{r}
+m9 <- lme(IQ ~ age + distcat, random = ~1|school, na.action = na.omit, data = data) 
+summary(m9)
+```
+
+# Online resources
+<https://ase.tufts.edu/gsc/gradresources/guidetomixedmodelsinr/mixed%20model%20guide.html>
+<https://gkhajduk.github.io/2017-03-09-mixed-models/>
+<https://www.cscu.cornell.edu/workshops/multilevel.php>
+
+The CSCU website is the source for the dataset used in this script.

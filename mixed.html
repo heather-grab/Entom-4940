@@ -10,8 +10,9 @@
 
 
 
+<meta name="date" content="2018-02-24" />
 
-<title></title>
+<title>Mixed models</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -195,11 +196,469 @@ $(document).ready(function () {
 
 
 
+<h1 class="title toc-ignore">Mixed models</h1>
+<h4 class="date"><em>February 24, 2018</em></h4>
 
 </div>
 
 
+<pre class="r"><code>setwd(&quot;F:/Google Drive/Courses and lab meetings/2018 courses/Statistical methods/entom4940/Mixed models&quot;)</code></pre>
+<pre class="r"><code>data &lt;- 
+  &quot;exerc1.csv&quot; %&gt;% 
+  read.csv %&gt;% 
+  select(IQ, sex, age, ses, distcat, school, BMI, Pb)</code></pre>
+<div id="introduction-to-mixed-models" class="section level1">
+<h1>Introduction to mixed models</h1>
+<p><em>“Mixed modeling is rarely, if ever, covered in even upper-level statistics courses. Trying to learn it on your own is like prepping to perform your own appendectomy - and just about as painful…”</em></p>
+<p>– <a href="https://thecraftofstatisticalanalysis.com/random-intercept-random-slope-models/" class="uri">https://thecraftofstatisticalanalysis.com/random-intercept-random-slope-models/</a></p>
+<p>Mixed models are a form of linear modeling used for hierarchical data when the response variable has a normal distribution and the predictor variables are a mix of fixed and random effects. These models are also good when data points might not be fully independent of each other, for example students grouped into school or plants grouped into quadrats.</p>
+<div id="repeated-measures" class="section level3">
+<h3>Repeated measures</h3>
+<p>When analyzing data that involves repeated measures for the same subject, mixed models can be a better choice than a repeated measures ANOVA for a few reasons, including:</p>
+<ul>
+<li><p>A mixed model can handle missing values, but a repeated measures ANOVA must drop the subject entirely if it is missing even a single measurement.</p></li>
+<li><p>A mixed model can handle hierarchical clustering, but a repeated measures ANOVA cannot.</p></li>
+<li><p>Repeated measures can be spaced at irregular intervals when using a mixed model.</p></li>
+</ul>
+</div>
+<div id="hierarchical-data" class="section level3">
+<h3>Hierarchical data</h3>
+<p>Grouping factors like populations, species, sites. This is different from clustered data, where individual points may belong to more than one group at the same level.</p>
+<p>An example of hierarchical data might be: - students clustered</p>
+</div>
+<div id="fixed-and-random-effects" class="section level3">
+<h3>Fixed and random effects</h3>
+<p>A mixed model is a type of linear model with multiple predictor variables.</p>
+<p><code>Y ~ B0 + B1 X1 + B2 X2 + ... + E</code></p>
+<p>The coefficients tell you how much the response variable changes for one unit of change in the predictor variables. <code>B0</code> is the intercept and <code>E</code> the error term - the amount of variability not explained by your model.</p>
+<p>What makes something a mixed model is that the various effect terms (e.g. <code>B1</code>, <code>B2</code>) are a mix of fixed and random effects.</p>
+<p><strong>Fixed effects</strong> are the same no matter how much or where you sample. For example, <code>sex</code> is a fixed effect because you have your values <code>male</code>, <code>female</code>, and <code>other</code>, and no matter how much data you sample you’ll still have those same factor levels.</p>
+<p><strong>Random effects</strong> are factors for which the levels are samples from a larger population about which we’re trying to draw conclusions. Individual <code>subject ID</code>, for example, is a random effect because a) you could go out and sample more individuals who would be different from the ones you have and b) you’re inferring something about the whole population from the sub-group included in your analysis.</p>
+<p>Another way to think about random effects is that they capture variation that exists but that isn’t relevant to your question, like variation between individual subjects for which you have repeated measures. Where you have non-independence or pseudoreplication, include a random effect for that element even if it is not significant in the model, so that reviewers know you properly accounted for it.</p>
+</div>
+<div id="interaction-terms" class="section level3">
+<h3>Interaction terms</h3>
+<p>An interaction occurs when one variable changes how another variable affects the response variable. When including an interaction term, be sure to leave in lower order terms for each interaction.</p>
+</div>
+<div id="nested-vs-crossed" class="section level3">
+<h3>Nested vs crossed</h3>
+<p>An example from <a href="https://www.theanalysisfactor.com/the-difference-between-crossed-and-nested-factors/" class="uri">https://www.theanalysisfactor.com/the-difference-between-crossed-and-nested-factors/</a>:</p>
+<p>Imagine you have 18 people assigned to two training groups, and their BMI is measured at three time points. There are both <strong>crossed</strong> and <strong>nested</strong> factors in this experiment.</p>
+<p>Crossed: Subject is crossed with time because every combination of subject and time point is represented by a value of BMI.</p>
+<p>Nested: Each subject is assigned to only one training group, and so not every possible combination of subject and group is represented by a value of BMI. By knowing the subject ID, you know exactly which training group they belong to. Thus subject is nested within training group.</p>
+<p>For crossed factors, you can look at an interaction term. For nested factors, you can’t.</p>
+</div>
+<div id="overfitting" class="section level3">
+<h3>Overfitting</h3>
+<p>Avoid overfitting, which occurs when your model has too small a sample size and too many predictor variables. If you do this, you’ll get a warning that your model wouldn’t converge.</p>
+</div>
+</div>
+<div id="data-exploration-and-rescaling" class="section level1">
+<h1>Data exploration and rescaling</h1>
+<p>Categorical variables need to be recoded as numeric before analyzing them (as.factor is one way to do this). For example, in this data, sex is already recoded from M/F to 0/1, and socioeconomic status (ses) from low, medium, and high to 0, 1, and 2.</p>
+<p>Standardizing your explanatory variables to a mean of zero and standard deviation of one (using function <code>scale</code>) is also useful. It makes it easier to compare effect sizes because all your estimated coefficients are on the same scale. Centering in this way also helps with interpreting the intercept of your model.</p>
+<p>Let’s take a look at the data:</p>
+<pre class="r"><code>str(data)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    457 obs. of  8 variables:
+##  $ IQ     : int  99 103 134 71 97 111 100 111 99 110 ...
+##  $ sex    : int  1 1 0 0 0 0 0 1 1 1 ...
+##  $ age    : num  6.67 7 7.17 6.92 8.5 ...
+##  $ ses    : int  1 1 0 1 1 0 1 1 1 1 ...
+##  $ distcat: int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ school : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ BMI    : num  17 20 13 16.3 16.5 ...
+##  $ Pb     : num  6.47 5.93 12.96 10.39 9.15 ...</code></pre>
+<pre class="r"><code>summary(data)</code></pre>
+<pre><code>##        IQ           sex             age             ses       
+##  Min.   : 55   Min.   :0.000   Min.   :6.167   Min.   :0.000  
+##  1st Qu.: 93   1st Qu.:0.000   1st Qu.:6.667   1st Qu.:1.000  
+##  Median :103   Median :0.000   Median :6.917   Median :1.000  
+##  Mean   :102   Mean   :0.442   Mean   :6.945   Mean   :0.831  
+##  3rd Qu.:112   3rd Qu.:1.000   3rd Qu.:7.167   3rd Qu.:1.000  
+##  Max.   :145   Max.   :1.000   Max.   :8.500   Max.   :2.000  
+##  NA&#39;s   :7                                     NA&#39;s   :19     
+##     distcat           school            BMI              Pb       
+##  Min.   :0.0000   Min.   : 1.000   Min.   :12.74   Min.   : 1.99  
+##  1st Qu.:0.0000   1st Qu.: 3.000   1st Qu.:15.26   1st Qu.: 7.60  
+##  Median :1.0000   Median : 7.000   Median :16.28   Median :10.57  
+##  Mean   :0.5733   Mean   : 7.112   Mean   :16.94   Mean   :11.98  
+##  3rd Qu.:1.0000   3rd Qu.:11.000   3rd Qu.:17.83   3rd Qu.:14.30  
+##  Max.   :1.0000   Max.   :14.000   Max.   :29.21   Max.   :43.82  
+##                                    NA&#39;s   :3       NA&#39;s   :4</code></pre>
+<p>It is important to visually examine your data to ensure you select an appropriate analysis. For mixed models, your response variable should be normal, but your predictor variables don’t have to be. Check that the response variable is normal:</p>
+<pre class="r"><code>ggplot(data, aes(IQ)) + geom_histogram() + ggtitle(&quot;Distribution of the response variable&quot;)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<pre><code>## Warning: Removed 7 rows containing non-finite values (stat_bin).</code></pre>
+<p><img src="mixed_files/figure-html/plot%20response%20distribution-1.png" width="672" /></p>
+<p>This looks pretty good. Now let’s check whether we want to rescale any of the variables. Age, BMI, and Pb are continuous variables and so seem like good candidates.</p>
+<pre class="r"><code>ggplot(data, aes(age)) + geom_histogram()</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="mixed_files/figure-html/center%20and%20scale-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data, aes(BMI)) + geom_histogram()</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite values (stat_bin).</code></pre>
+<p><img src="mixed_files/figure-html/center%20and%20scale-2.png" width="672" /></p>
+<pre class="r"><code>ggplot(data, aes(Pb)) + geom_histogram()</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<pre><code>## Warning: Removed 4 rows containing non-finite values (stat_bin).</code></pre>
+<p><img src="mixed_files/figure-html/center%20and%20scale-3.png" width="672" /></p>
+<pre class="r"><code>data &lt;- 
+  data %&gt;% 
+  mutate(
+    age = as.numeric(scale(age)), 
+    BMI = as.numeric(scale(BMI)), 
+    Pb = as.numeric(scale(Pb))
+  )</code></pre>
+</div>
+<div id="analysis" class="section level1">
+<h1>Analysis</h1>
+<div id="plain-linear-model" class="section level2">
+<h2>Plain linear model</h2>
+<p>Does the distance category of a school from a foundry, which could potentially be causing lead pollution, reduce the IQ of schoolchildren going to that school?</p>
+<p>Just looking at a linear model of data from 14 schools near the foundry, you would think so, but there are some problems with this analysis.</p>
+<pre class="r"><code>m.linear &lt;- lm(IQ ~ sex + age + ses + Pb + distcat, data = data)
+summary(m.linear)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = IQ ~ sex + age + ses + Pb + distcat, data = data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -48.368  -9.048   0.653   9.698  37.630 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   99.170      1.727  57.410  &lt; 2e-16 ***
+## sex           -2.821      1.448  -1.949  0.05200 .  
+## age           -1.384      0.736  -1.880  0.06073 .  
+## ses            2.046      1.314   1.557  0.12029    
+## Pb            -2.135      0.814  -2.623  0.00903 ** 
+## distcat        4.388      1.649   2.662  0.00807 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 14.89 on 429 degrees of freedom
+##   (22 observations deleted due to missingness)
+## Multiple R-squared:  0.08475,    Adjusted R-squared:  0.07408 
+## F-statistic: 7.945 on 5 and 429 DF,  p-value: 3.566e-07</code></pre>
+<pre class="r"><code>anova(m.linear)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: IQ
+##            Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## sex         1    921   921.3  4.1559  0.042103 *  
+## age         1   1107  1106.5  4.9915  0.025986 *  
+## ses         1    946   945.8  4.2667  0.039465 *  
+## Pb          1   4262  4261.8 19.2251 1.463e-05 ***
+## distcat     1   1570  1570.3  7.0837  0.008071 ** 
+## Residuals 429  95100   221.7                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>This analysis yields incorrect standard errors because it violates the assumption that the residuals are independent. The subjects are grouped into schools in this dataset, and that grouping is not accounted for by a linear model. Note the inflated degrees of freedom for distcat that result from its pesudoreplication.</p>
+</div>
+<div id="mixed-modeling" class="section level2">
+<h2>Mixed modeling</h2>
+<p>Because the data are hierarchical, with multiple measurements at multiple levels of organization (e.g. school and student), a mixed model would be better here. We’ll use the <code>nlme</code> package for our models, but the <code>lme4</code> package has a very similar format.</p>
+<p>To estimate the variablity in IQ within vs between schools, we can run a model with only the random effect <code>school</code>. This lets the intercept vary with <code>school</code>.</p>
+<pre class="r"><code># using nlme package
 
+m1 &lt;- lme(IQ ~ 1, random = ~1|school, method = &quot;REML&quot;, na.action = na.omit, data = data)
+summary(m1)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##  Data: data 
+##        AIC      BIC    logLik
+##   3713.927 3726.249 -1853.964
+## 
+## Random effects:
+##  Formula: ~1 | school
+##         (Intercept) Residual
+## StdDev:    5.290319 14.58551
+## 
+## Fixed effects: IQ ~ 1 
+##                Value Std.Error  DF  t-value p-value
+## (Intercept) 102.5002  1.586903 436 64.59134       0
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.48155658 -0.57505992  0.03681583  0.66896768  2.54776677 
+## 
+## Number of Observations: 450
+## Number of Groups: 14</code></pre>
+<pre class="r"><code># using lme4 package
+
+m2 &lt;- lmer(IQ ~ 1 + (1|school), REML = TRUE, na.action = na.omit, data = data)
+summary(m2)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: IQ ~ 1 + (1 | school)
+##    Data: data
+## 
+## REML criterion at convergence: 3707.9
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.4816 -0.5751  0.0368  0.6690  2.5478 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  school   (Intercept)  27.99    5.29   
+##  Residual             212.74   14.59   
+## Number of obs: 450, groups:  school, 14
+## 
+## Fixed effects:
+##             Estimate Std. Error t value
+## (Intercept)  102.500      1.587   64.59</code></pre>
+<p>The <code>1</code>s used in these models are constants used as placeholders when you aren’t using covariates there. The random covariate to the right of the bar (here, <code>school</code>) allows variation in intercept with this covariate.</p>
+<p>Parameters (like p-value, standard error, etc.) are only going to be estimated for the fixed effects, not the random effects.</p>
+<p>Let’s add covariates to our model.</p>
+<pre class="r"><code>m3 &lt;- lme(IQ ~ sex + age + ses + Pb + distcat, random = ~1|school, na.action = na.omit, data = data)
+summary(m3)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##  Data: data 
+##        AIC      BIC    logLik
+##   3573.304 3605.795 -1778.652
+## 
+## Random effects:
+##  Formula: ~1 | school
+##         (Intercept) Residual
+## StdDev:    3.847656 14.49946
+## 
+## Fixed effects: IQ ~ sex + age + ses + Pb + distcat 
+##                Value Std.Error  DF  t-value p-value
+## (Intercept) 99.79718 2.3134839 417 43.13718  0.0000
+## sex         -2.71006 1.4212686 417 -1.90679  0.0572
+## age         -1.37318 0.7231642 417 -1.89886  0.0583
+## ses          1.94821 1.2970263 417  1.50206  0.1338
+## Pb          -1.94705 0.8068593 417 -2.41313  0.0162
+## distcat      4.18923 2.6462699  12  1.58307  0.1394
+##  Correlation: 
+##         (Intr) sex    age    ses    Pb    
+## sex     -0.295                            
+## age     -0.031  0.011                     
+## ses     -0.436 -0.020  0.052              
+## Pb      -0.232  0.080 -0.029  0.041       
+## distcat -0.648  0.056  0.011 -0.039  0.276
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.38994659 -0.63216092  0.06822743  0.66448634  2.32685110 
+## 
+## Number of Observations: 435
+## Number of Groups: 14</code></pre>
+<p>The estimates for each fixed effect represents the change in the response variable when that fixed effect changes by one unit, while all other fixed effects are held constant at their mean value. The estimate for the intercept gives the value of the response variable when all the other fixed effects are at zero - which is why it’s helpful to have centered your predictors.</p>
+<p>Check the estimated variance for the random effect. If it’s indistinguishable from zero, then that random effect doesn’t matter and you can do a regular linear model instead (which has only fixed effects).</p>
+<p>Also check the correlation between fixed effects (not with the intercept) - if fixed effects are highly correlated, you have a situation called “multicollinearity.” These highly correlated effects should not be included in one model together. Instead, you can make separate models that include either one or the other, and compare the models using model comparison to decide which covariate to keep.</p>
+<div id="random-slopes" class="section level3">
+<h3>Random slopes</h3>
+<p>What about situations when there is a different relationship between the predictor and response variables across the different levels of the random factor? You can allow each random factor to vary not only in intercept but also in slope.</p>
+<p>Here we allow each school to have its own slope of age. This will often improve the model.</p>
+<pre class="r"><code>m4 &lt;- lme(IQ ~ sex + age + ses + Pb + distcat, random = ~age|school, na.action = na.omit, data = data)
+summary(m4)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##  Data: data 
+##        AIC      BIC    logLik
+##   3576.195 3616.809 -1778.097
+## 
+## Random effects:
+##  Formula: ~age | school
+##  Structure: General positive-definite, Log-Cholesky parametrization
+##             StdDev    Corr  
+## (Intercept)  3.820315 (Intr)
+## age          1.562607 -0.509
+## Residual    14.429239       
+## 
+## Fixed effects: IQ ~ sex + age + ses + Pb + distcat 
+##                 Value Std.Error  DF  t-value p-value
+## (Intercept) 100.23237 2.2887284 417 43.79391  0.0000
+## sex          -2.83425 1.4207802 417 -1.99485  0.0467
+## age          -1.61320 0.8498488 417 -1.89821  0.0584
+## ses           1.82189 1.2962083 417  1.40555  0.1606
+## Pb           -1.91173 0.8047680 417 -2.37551  0.0180
+## distcat       3.69328 2.5751671  12  1.43419  0.1771
+##  Correlation: 
+##         (Intr) sex    age    ses    Pb    
+## sex     -0.298                            
+## age     -0.150  0.016                     
+## ses     -0.447 -0.020  0.047              
+## Pb      -0.235  0.075 -0.027  0.045       
+## distcat -0.641  0.058  0.014 -0.029  0.284
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.43016244 -0.62288497  0.07439884  0.66379767  2.27899865 
+## 
+## Number of Observations: 435
+## Number of Groups: 14</code></pre>
+</div>
+<div id="interactions" class="section level3">
+<h3>Interactions</h3>
+<p>You can also include interaction terms as fixed effects. When using an interaction term, remember to still include the components of the interaction as individual fixed effects.</p>
+<pre class="r"><code>m5 &lt;- lme(IQ ~ sex + age + sex * age, random = ~1|school, na.action = na.omit, data = data)
+summary(m5)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##  Data: data 
+##        AIC      BIC    logLik
+##   3705.574 3730.176 -1846.787
+## 
+## Random effects:
+##  Formula: ~1 | school
+##         (Intercept) Residual
+## StdDev:    5.102384 14.51071
+## 
+## Fixed effects: IQ ~ sex + age + sex * age 
+##                 Value Std.Error  DF  t-value p-value
+## (Intercept) 103.64198 1.6594041 433 62.45735  0.0000
+## sex          -2.56997 1.3914538 433 -1.84696  0.0654
+## age          -1.59131 0.9417289 433 -1.68977  0.0918
+## sex:age       0.16938 1.3936810 433  0.12153  0.9033
+##  Correlation: 
+##         (Intr) sex    age   
+## sex     -0.372              
+## age     -0.001  0.003       
+## sex:age  0.002 -0.016 -0.679
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.42321384 -0.60395169  0.06851778  0.67403992  2.41075782 
+## 
+## Number of Observations: 450
+## Number of Groups: 14</code></pre>
+<p>This interaction term is not very significant and so should be removed from the model.</p>
+</div>
+<div id="model-comparison-using-p-values" class="section level3">
+<h3>Model comparison using p-values</h3>
+<p>Check whether specific fixed and random effects are needed by comparing models. Start with your most complex model containing all your effects of interest, then drop them one by one, making a new model each time. Drop the highest-order interaction terms with the highest-order p-value first.</p>
+<pre class="r"><code>m6 &lt;- lme(IQ ~ sex + age + ses + distcat + sex * age, random = ~1|school, na.action = na.omit, data = data) 
+summary(m6)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##  Data: data 
+##        AIC      BIC    logLik
+##   3603.355 3635.903 -1793.678
+## 
+## Random effects:
+##  Formula: ~1 | school
+##         (Intercept) Residual
+## StdDev:    4.061579 14.59614
+## 
+## Fixed effects: IQ ~ sex + age + ses + distcat + sex * age 
+##                Value Std.Error  DF  t-value p-value
+## (Intercept) 98.61655 2.3181073 420 42.54184  0.0000
+## sex         -2.47411 1.4194741 420 -1.74298  0.0821
+## age         -1.53614 0.9518906 420 -1.61377  0.1073
+## ses          1.92242 1.2993137 420  1.47957  0.1397
+## distcat      6.00745 2.6422159  12  2.27364  0.0422
+## sex:age      0.18848 1.4375219 420  0.13112  0.8957
+##  Correlation: 
+##         (Intr) sex    age    ses    distct
+## sex     -0.283                            
+## age     -0.036  0.006                     
+## ses     -0.427 -0.018  0.054              
+## distcat -0.632  0.035  0.013 -0.049       
+## sex:age  0.006 -0.011 -0.662 -0.006 -0.002
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.31719015 -0.59891749  0.05048137  0.69607666  2.37667763 
+## 
+## Number of Observations: 438
+## Number of Groups: 14</code></pre>
+<pre class="r"><code>m7 &lt;- lme(IQ ~ sex + age + ses + distcat, random = ~1|school, na.action = na.omit, data = data) 
+summary(m7)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##  Data: data 
+##        AIC     BIC    logLik
+##   3603.935 3632.43 -1794.968
+## 
+## Random effects:
+##  Formula: ~1 | school
+##         (Intercept) Residual
+## StdDev:    4.054413 14.57974
+## 
+## Fixed effects: IQ ~ sex + age + ses + distcat 
+##                Value Std.Error  DF  t-value p-value
+## (Intercept) 98.61437 2.3146960 421 42.60359  0.0000
+## sex         -2.47208 1.4177821 421 -1.74362  0.0820
+## age         -1.45352 0.7126513 421 -2.03960  0.0420
+## ses          1.92354 1.2978215 421  1.48213  0.1391
+## distcat      6.00839 2.6380622  12  2.27758  0.0419
+##  Correlation: 
+##         (Intr) sex    age    ses   
+## sex     -0.283                     
+## age     -0.042 -0.002              
+## ses     -0.428 -0.018  0.067       
+## distcat -0.632  0.035  0.015 -0.049
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.32311635 -0.60335879  0.04583759  0.69979123  2.37919401 
+## 
+## Number of Observations: 438
+## Number of Groups: 14</code></pre>
+<pre class="r"><code>m8 &lt;- lme(IQ ~ sex + age + distcat, random = ~1|school, na.action = na.omit, data = data) 
+summary(m8)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##  Data: data 
+##        AIC      BIC    logLik
+##   3699.696 3724.298 -1843.848
+## 
+## Random effects:
+##  Formula: ~1 | school
+##         (Intercept) Residual
+## StdDev:    4.187035 14.49864
+## 
+## Fixed effects: IQ ~ sex + age + distcat 
+##                 Value Std.Error  DF  t-value p-value
+## (Intercept) 100.08993 2.1238104 434 47.12752  0.0000
+## sex          -2.50206 1.3899761 434 -1.80008  0.0725
+## age          -1.49630 0.6905278 434 -2.16689  0.0308
+## distcat       6.11356 2.6791162  12  2.28193  0.0415
+##  Correlation: 
+##         (Intr) sex    age   
+## sex     -0.320              
+## age     -0.014 -0.011       
+## distcat -0.725  0.041  0.019
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.33360320 -0.61168680  0.05185314  0.65908991  2.43283910 
+## 
+## Number of Observations: 450
+## Number of Groups: 14</code></pre>
+<pre class="r"><code>m9 &lt;- lme(IQ ~ age + distcat, random = ~1|school, na.action = na.omit, data = data) 
+summary(m9)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##  Data: data 
+##        AIC      BIC    logLik
+##   3703.425 3723.938 -1846.712
+## 
+## Random effects:
+##  Formula: ~1 | school
+##         (Intercept) Residual
+## StdDev:    4.261853 14.53057
+## 
+## Fixed effects: IQ ~ age + distcat 
+##                Value Std.Error  DF  t-value p-value
+## (Intercept) 98.87479 2.0397098 435 48.47493  0.0000
+## age         -1.50892 0.6920584 435 -2.18034  0.0298
+## distcat      6.30695 2.7130164  12  2.32470  0.0384
+##  Correlation: 
+##         (Intr) age   
+## age     -0.018       
+## distcat -0.752  0.020
+## 
+## Standardized Within-Group Residuals:
+##        Min         Q1        Med         Q3        Max 
+## -3.4189986 -0.5865094  0.0714204  0.6599321  2.5134284 
+## 
+## Number of Observations: 450
+## Number of Groups: 14</code></pre>
+</div>
+</div>
+</div>
+<div id="online-resources" class="section level1">
+<h1>Online resources</h1>
+<p><a href="https://ase.tufts.edu/gsc/gradresources/guidetomixedmodelsinr/mixed%20model%20guide.html">https://ase.tufts.edu/gsc/gradresources/guidetomixedmodelsinr/mixed%20model%20guide.html</a> <a href="https://gkhajduk.github.io/2017-03-09-mixed-models/" class="uri">https://gkhajduk.github.io/2017-03-09-mixed-models/</a> <a href="https://www.cscu.cornell.edu/workshops/multilevel.php" class="uri">https://www.cscu.cornell.edu/workshops/multilevel.php</a></p>
+<p>The CSCU website is the source for the dataset used in this script.</p>
+</div>
 
 
 
