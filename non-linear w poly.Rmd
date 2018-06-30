@@ -1,0 +1,212 @@
+---
+title: "What does linear mean? Working with Polynomials and Non-linear Models "
+author1: "Rachael Mady"
+author2: "Danielle Rutkowski"
+date: "March 14, 2018"
+output:  
+  html_document:  
+    toc: true  
+    toc_float: true 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)   
+library(ggthemes)
+library(nlme)
+library(sjPlot)
+```
+
+```{r, include=FALSE}
+#setwd("C:/Users/racha/Documents/Spring 2018/Advanced Stats - R seminar/7 - Non linear models")
+#("~/Box/Entom 4940: Advanced Statistical Methods (Heather Connelly)/Mar 14: Non-linear models and polynomials")
+```
+
+##Linear versus Non-linear models
+A non-linear model is a model that is not linear. This simple statement can be confusing if we don't know what we are referring to as linear. When we say "linear" we are referring to the parameters in a model. This can be confusing because the independent variable can be transformed in ways that produce curves, such as a quadratic transformation.
+
+A linear model is the sum of terms that are either constants or parameters multiplied by independent variables. Written out this looks like (in words and in greek letters):
+```Dependent variable = constant + parameter*(independent variable) + ... + parameter*(Independent variable)```
+
+$$Y = \beta_0 + \beta_{1}X_{1} + \beta_{2}X_{2} +... + \beta_{k}X_{k}$$
+So, if an equation is not the sum of terms that are constants or the products of parameters and independent variables, you have a non-linear model, a model that is "not linear."
+
+
+##First steps
+When first working with your data, it is best to fit a linear model. While non-linear models provide more flexibility than linear models, they are not as easy to interpret and understand as linear models 
+
+Let's work through an example.
+First load the data from the R Book by Crawley. It's a record of individual deer's jaw bone length and age. 
+```{r load data}
+
+data <- 
+  "nl_poly_data.csv" %>% 
+  read.csv()
+
+```
+
+Make sure that the data loaded correctly.
+```{r check data, echo=FALSE}
+head(data)
+tail(data)
+```
+
+We are interested to see if a deer's age predicts its jaw bone length.
+Let's plot the data using ggplot to see what it looks like.
+```{r plot data}
+ggplot(data, aes(age,bone))+geom_point()+theme_few() + ylab("Jaw Bone Length") + xlab("Age")
+```
+
+We can already tell from the scatterplot of the data that the best model will probably not be linear. Still, let's try to fit the data with a linear model and evaluate its fit with model diagnostic plots produced by the function ```plot()```
+```{r linear model}
+lm <- lm(bone ~ age, data = data)
+par(mfrow=c(2,2)) #to create space for all four graphs in the next function to show in one window
+plot(lm)
+```
+
+Just looking at the first graph, Residuals vs. Fitted, we can tell that our linear model is a poor fit. There seems to be a trend when what we want is a random spread. 
+
+So, let's look back at the scatterplot of the data.
+```{r look back at scatterplot, eval=TRUE}
+ggplot(data, aes(age,bone))+geom_point()+theme_few() + ylab("Jaw Bone Length") + xlab("Age")
+```
+
+Before we jump to non-linear modelling, let's try a log-transformation of our independent variable. Maybe we could fit a log-transformation on the age predictor variable because the graph does have a logarithmic shape.
+```{r linear model with log transformation}
+lm_log <- lm(bone ~ log(age+1), data = data) #need the +1 with age because there is an age=0, which is undefined in log function
+par(mfrow=c(2,2)) #to create space for all four graphs in the net function show in one plot window
+plot(lm_log)
+```
+
+Still, the Residuals vs. Fitted graph looks awful. 
+
+##Polynomial Models
+Before we move on to non-linear models, we can see if a polynomial model would better fit our data. These kinds of models still take the form of a linear model as described above, despite the fact that the relationship between x and y is not a straight line. 
+We can start by checking whether or not our data fit a quadratic model.
+```{r quadratic model}
+poly_2 <- lm(bone~ poly(age, 2), data = data)
+summary(poly_2)
+```
+
+We can also check our data against a cubic model.
+```{r cubic model}
+poly_3 <- lm(bone ~ poly(age, 3), data = data)
+summary(poly_3)
+```
+
+We can quickly visualize these two models, as well as a simple linear model, in comparison to our observed data using sjPlot. 
+```{r visualization using sjPlot}
+sjp.poly(data$bone, data$age, c(1,2,3))
+```
+
+The cubic model seems to be a better fit, with a higher R^2^ than the quadratic model. We can test to see if there are any significant differences in explanatory power between these two models using the ```anova()``` function.
+```{r check model fit}
+anova(poly_2,poly_3)
+```
+
+Looking at the p-value, we can determine from the this test that the cubic model is a better fit for our data than the quadratic model. We could continue to try higher order models as well, but it's important to be careful to avoid over-fitting of the model. For now, we will stop at the cubic model, and test the fit of the model using the ```plot()``` function.
+```{r check model assumptions}
+par(mfrow = c(2,2))
+plot(poly_3)
+```
+
+**Note**
+We can also plot our data using ggplot2 instead of or in addition to sjPlot
+```{r visualization using ggplot2}
+ggplot(data,aes(age,bone))+
+  geom_point()+
+  geom_smooth(method="lm",se=FALSE,formula=y~poly(x,3))
+```
+
+#Non-linear models 
+It looks like the cubic polynomial fits the data pretty well, but this is statistics and there is not just one right answer. Let's see if non-linear models provide any better fit. 
+
+Since there are infinite number of options when it comes to choosing a non-linear model, it helps to consult colleagues and look at previous work in the literature to see if there are any non-linear models previously tested with data sets similar to yours.
+
+In our case, there is theory to suggest that age predicts jaw bone length in terms of this non-linear function in which a,b, and c are the parameters, y is the dependent variable and x is the independent variable.  
+```y=a-b*exp(-c*x)```
+
+Now, the tricky part of non-linear models is choosing the starting points. The algorithm will choose the best fit model step-by-step, but needs a starting point for the parameter values. The best places to look for this are the equation's behavior at its limits, in this case where x=0 and x=infinity.
+
+If we plug in x=0, we get y=a-b.
+If we "plug in" x=infinity, we get y=a.
+
+Looking at the plot(bone~age,data=data), y = a = 120. 
+Since y=a-b and at x=0, y looks like it equals about 10, 10=a-b --> b=110. 
+
+Picking a starting point for c is a bit harder. First, choose an (x,y) point along the imaginary best-fit line. 
+Now, solve the above equation for c using the values you have previously selected for a and b. 
+We get c=0.06369075.
+
+With out values a=120, b=110, c=0.064, we can now input these into the function nls() and output the results using summary().
+```{r non-linear model}
+nlm <- nls(bone~a-b*exp(-c*age),start=list(a=120,b=110,c=0.064), data=data)
+summary(nlm)
+
+```
+It seems that all parameters are significantly different from 0, but this does not mean that the parameters should be retained in the model! Looking at the estimates and their standard errors we see that a's estimate does not differ from b's by more than 2 standard errors (a convention).
+
+So, let's try a simpler model than this 3-parameter asymptotic exponential: a 2-parameter asymptotic exponential.Then, let's compare the two.
+```{r second non-linear model}
+nlm_2 <- nls(bone~a*(1-exp(-c*age)),start=list(a=120,c=0.064),data=data)
+summary(nlm_2)
+anova(nlm,nlm_2)
+```
+
+Since p=0.671, we are justified in fitting this simpler model and accept this model as the minimial adequate model.Whenever we are choosing the best model, always keep in mind that parsimony is most preferred. Since the models aren't significantly different, we are going to choose the one with less parameters. 
+Let's plot the model curve through the scatterplot of the data. 
+
+```{r plot results}
+data$predictions <- predict(nlm_2) #assign the values from the model to a column in data sheet 
+ggplot(data,aes(x=age,y=bone))+
+  geom_line(aes(y=predictions), colour="blue")+
+  geom_point()+theme_few()+ylab("Jaw Bone Length") + xlab("Age")
+  
+```
+
+
+#Model Fit - S value
+The fit of non-linear models, unlike linear models, cannot be compared using R-square values and instead rely on S values. S values give you the average absolute distance from the data points to the regression line using the units of the response variable. The smaller the value, the better your model fit. 
+
+This can be found in the summary() output labeled "Residual standard error." Now, for these models it looks like they have relatively the same values, so you can either use the anova() or the S value to determine better fit.
+
+If we want to compare visually as well, we can plot the predictions of the models together. If we want to compare the cubic polynomial to the second non-linear model, we can plot the models below. Red refers to the cubic polynomial and blue refers to the non-linear model.
+```{r compare, echo=FALSE}
+data$z <- predict(poly_3)
+ggplot(data,aes(x=age,y=bone))+
+  geom_line(aes(y=predictions), colour="blue")+
+  geom_line(aes(y=z), colour="red")+
+  geom_point()+theme_few()+ylab("Jaw Bone Length") + xlab("Age")
+ 
+```
+
+
+#What model do I use?
+That seems to always be the question and will continue to be the question! When a linear model doesn't fit your data, the next step in selecting the best model depends on your specific data set, the literature, and many other things. 
+
+When considering non-linear models, it can be difficult to set up the models if there is no previous literature or theory on the best equation to use. Also, interpreting the effect of the independent variable on the dependent variable isn't straight forward and there are no p-values that can be calculated. 
+
+If linear models, including polynomials and generalized linear models, and  non-linear models aren't working for you, it may be time to consider generalized additive models (GAMs).
+
+
+
+# Online resources
+<http://statisticsbyjim.com/regression/choose-linear-nonlinear-regression/> 
+<https://datascienceplus.com/first-steps-with-non-linear-regression-in-r/>
+<http://blog.minitab.com/blog/adventures-in-statistics-2/what-is-the-difference-between-linear-and-nonlinear-equations-in-regression-analysis>
+<http://blog.minitab.com/blog/adventures-in-statistics-2/curve-fitting-with-linear-and-nonlinear-regression>
+<https://datascienceplus.com/fitting-polynomial-regression-r/>
+<https://www.r-bloggers.com/fitting-polynomial-regression-in-r/>
+R book by Crawley
+
+###
+#notes by me (Kass) from class:
+#we started with linear model <- lm (y~x)
+#then we tried a curvy model <- lm(y~log(x+1)) #the +1 is because we had a 0 to account for
+#then we tried different polynomial models which we can compare with anovas
+#poly <-lm(y~x+I(x^2))
+#so finally we tried a nonlinear model <- nls(y~a*(1-e^-cx)) #which is always based on theory
+
+
+

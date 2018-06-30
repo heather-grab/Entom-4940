@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<meta name="date" content="2018-03-14" />
+
+<title>What does linear mean? Working with Polynomials and Non-linear Models</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Entom 4940: Advanced Statistical Methods in Ecology</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">What does linear mean? Working with Polynomials and Non-linear Models</h1>
+<h4 class="date"><em>March 14, 2018</em></h4>
+
+</div>
+
+
+<div id="linear-versus-non-linear-models" class="section level2">
+<h2>Linear versus Non-linear models</h2>
+<p>A non-linear model is a model that is not linear. This simple statement can be confusing if we don’t know what we are referring to as linear. When we say “linear” we are referring to the parameters in a model. This can be confusing because the independent variable can be transformed in ways that produce curves, such as a quadratic transformation.</p>
+<p>A linear model is the sum of terms that are either constants or parameters multiplied by independent variables. Written out this looks like (in words and in greek letters): <code>Dependent variable = constant + parameter*(independent variable) + ... + parameter*(Independent variable)</code></p>
+<p><span class="math display">\[Y = \beta_0 + \beta_{1}X_{1} + \beta_{2}X_{2} +... + \beta_{k}X_{k}\]</span> So, if an equation is not the sum of terms that are constants or the products of parameters and independent variables, you have a non-linear model, a model that is “not linear.”</p>
+</div>
+<div id="first-steps" class="section level2">
+<h2>First steps</h2>
+<p>When first working with your data, it is best to fit a linear model. While non-linear models provide more flexibility than linear models, they are not as easy to interpret and understand as linear models</p>
+<p>Let’s work through an example. First load the data from the R Book by Crawley. It’s a record of individual deer’s jaw bone length and age.</p>
+<pre class="r"><code>data &lt;- 
+  &quot;nl_poly_data.csv&quot; %&gt;% 
+  read.csv()</code></pre>
+<p>Make sure that the data loaded correctly.</p>
+<pre><code>##         age      bone
+## 1  0.000000   0.00000
+## 2  5.112000  20.22000
+## 3  1.320000  11.11130
+## 4 35.240000 140.65000
+## 5  1.632931  26.15218
+## 6  2.297635  10.00100</code></pre>
+<pre><code>##         age     bone
+## 49 45.85532 108.5123
+## 50 46.01533 135.0000
+## 51 47.70016 112.4295
+## 52 48.96435 101.6761
+## 53 49.32956 142.0000
+## 54 50.60410  91.2000</code></pre>
+<p>We are interested to see if a deer’s age predicts its jaw bone length. Let’s plot the data using ggplot to see what it looks like.</p>
+<pre class="r"><code>ggplot(data, aes(age,bone))+geom_point()+theme_few() + ylab(&quot;Jaw Bone Length&quot;) + xlab(&quot;Age&quot;)</code></pre>
+<p><img src="non-linear_w_poly_files/figure-html/plot%20data-1.png" width="672" /></p>
+<p>We can already tell from the scatterplot of the data that the best model will probably not be linear. Still, let’s try to fit the data with a linear model and evaluate its fit with model diagnostic plots produced by the function <code>plot()</code></p>
+<pre class="r"><code>lm &lt;- lm(bone ~ age, data = data)
+par(mfrow=c(2,2)) #to create space for all four graphs in the next function to show in one window
+plot(lm)</code></pre>
+<p><img src="non-linear_w_poly_files/figure-html/linear%20model-1.png" width="672" /></p>
+<p>Just looking at the first graph, Residuals vs. Fitted, we can tell that our linear model is a poor fit. There seems to be a trend when what we want is a random spread.</p>
+<p>So, let’s look back at the scatterplot of the data.</p>
+<pre class="r"><code>ggplot(data, aes(age,bone))+geom_point()+theme_few() + ylab(&quot;Jaw Bone Length&quot;) + xlab(&quot;Age&quot;)</code></pre>
+<p><img src="non-linear_w_poly_files/figure-html/look%20back%20at%20scatterplot-1.png" width="672" /></p>
+<p>Before we jump to non-linear modelling, let’s try a log-transformation of our independent variable. Maybe we could fit a log-transformation on the age predictor variable because the graph does have a logarithmic shape.</p>
+<pre class="r"><code>lm_log &lt;- lm(bone ~ log(age+1), data = data) #need the +1 with age because there is an age=0, which is undefined in log function
+par(mfrow=c(2,2)) #to create space for all four graphs in the net function show in one plot window
+plot(lm_log)</code></pre>
+<p><img src="non-linear_w_poly_files/figure-html/linear%20model%20with%20log%20transformation-1.png" width="672" /></p>
+<p>Still, the Residuals vs. Fitted graph looks awful.</p>
+</div>
+<div id="polynomial-models" class="section level2">
+<h2>Polynomial Models</h2>
+<p>Before we move on to non-linear models, we can see if a polynomial model would better fit our data. These kinds of models still take the form of a linear model as described above, despite the fact that the relationship between x and y is not a straight line. We can start by checking whether or not our data fit a quadratic model.</p>
+<pre class="r"><code>poly_2 &lt;- lm(bone~ poly(age, 2), data = data)
+summary(poly_2)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = bone ~ poly(age, 2), data = data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -28.175  -9.360   1.275   8.089  37.905 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)     93.979      2.062  45.585  &lt; 2e-16 ***
+## poly(age, 2)1  182.082     15.150  12.019  &lt; 2e-16 ***
+## poly(age, 2)2 -118.949     15.150  -7.852 2.48e-10 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 15.15 on 51 degrees of freedom
+## Multiple R-squared:  0.8016, Adjusted R-squared:  0.7939 
+## F-statistic: 103.1 on 2 and 51 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>We can also check our data against a cubic model.</p>
+<pre class="r"><code>poly_3 &lt;- lm(bone ~ poly(age, 3), data = data)
+summary(poly_3)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = bone ~ poly(age, 3), data = data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -28.792  -7.741   2.077   9.071  27.278 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)     93.979      1.857  50.597  &lt; 2e-16 ***
+## poly(age, 3)1  182.082     13.649  13.340  &lt; 2e-16 ***
+## poly(age, 3)2 -118.949     13.649  -8.715 1.33e-11 ***
+## poly(age, 3)3   48.893     13.649   3.582 0.000771 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 13.65 on 50 degrees of freedom
+## Multiple R-squared:  0.8421, Adjusted R-squared:  0.8327 
+## F-statistic: 88.92 on 3 and 50 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>We can quickly visualize these two models, as well as a simple linear model, in comparison to our observed data using sjPlot.</p>
+<pre class="r"><code>sjp.poly(data$bone, data$age, c(1,2,3))</code></pre>
+<pre><code>## Polynomial degrees: 1
+## ---------------------
+## p(x^1): 0.000
+## 
+## Polynomial degrees: 2
+## ---------------------
+## p(x^1): 0.000
+## p(x^2): 0.000
+## 
+## Polynomial degrees: 3
+## ---------------------
+## p(x^1): 0.000
+## p(x^2): 0.000
+## p(x^3): 0.001</code></pre>
+<p><img src="non-linear_w_poly_files/figure-html/visualization%20using%20sjPlot-1.png" width="672" /></p>
+<p>The cubic model seems to be a better fit, with a higher R<sup>2</sup> than the quadratic model. We can test to see if there are any significant differences in explanatory power between these two models using the <code>anova()</code> function.</p>
+<pre class="r"><code>anova(poly_2,poly_3)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: bone ~ poly(age, 2)
+## Model 2: bone ~ poly(age, 3)
+##   Res.Df     RSS Df Sum of Sq      F    Pr(&gt;F)    
+## 1     51 11705.2                                  
+## 2     50  9314.7  1    2390.5 12.832 0.0007707 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Looking at the p-value, we can determine from the this test that the cubic model is a better fit for our data than the quadratic model. We could continue to try higher order models as well, but it’s important to be careful to avoid over-fitting of the model. For now, we will stop at the cubic model, and test the fit of the model using the <code>plot()</code> function.</p>
+<pre class="r"><code>par(mfrow = c(2,2))
+plot(poly_3)</code></pre>
+<p><img src="non-linear_w_poly_files/figure-html/check%20model%20assumptions-1.png" width="672" /></p>
+<p><strong>Note</strong> We can also plot our data using ggplot2 instead of or in addition to sjPlot</p>
+<pre class="r"><code>ggplot(data,aes(age,bone))+
+  geom_point()+
+  geom_smooth(method=&quot;lm&quot;,se=FALSE,formula=y~poly(x,3))</code></pre>
+<p><img src="non-linear_w_poly_files/figure-html/visualization%20using%20ggplot2-1.png" width="672" /></p>
+</div>
+<div id="non-linear-models" class="section level1">
+<h1>Non-linear models</h1>
+<p>It looks like the cubic polynomial fits the data pretty well, but this is statistics and there is not just one right answer. Let’s see if non-linear models provide any better fit.</p>
+<p>Since there are infinite number of options when it comes to choosing a non-linear model, it helps to consult colleagues and look at previous work in the literature to see if there are any non-linear models previously tested with data sets similar to yours.</p>
+<p>In our case, there is theory to suggest that age predicts jaw bone length in terms of this non-linear function in which a,b, and c are the parameters, y is the dependent variable and x is the independent variable.<br />
+<code>y=a-b*exp(-c*x)</code></p>
+<p>Now, the tricky part of non-linear models is choosing the starting points. The algorithm will choose the best fit model step-by-step, but needs a starting point for the parameter values. The best places to look for this are the equation’s behavior at its limits, in this case where x=0 and x=infinity.</p>
+<p>If we plug in x=0, we get y=a-b. If we “plug in” x=infinity, we get y=a.</p>
+<p>Looking at the plot(bone~age,data=data), y = a = 120. Since y=a-b and at x=0, y looks like it equals about 10, 10=a-b –&gt; b=110.</p>
+<p>Picking a starting point for c is a bit harder. First, choose an (x,y) point along the imaginary best-fit line. Now, solve the above equation for c using the values you have previously selected for a and b. We get c=0.06369075.</p>
+<p>With out values a=120, b=110, c=0.064, we can now input these into the function nls() and output the results using summary().</p>
+<pre class="r"><code>nlm &lt;- nls(bone~a-b*exp(-c*age),start=list(a=120,b=110,c=0.064), data=data)
+summary(nlm)</code></pre>
+<pre><code>## 
+## Formula: bone ~ a - b * exp(-c * age)
+## 
+## Parameters:
+##   Estimate Std. Error t value Pr(&gt;|t|)    
+## a 115.2528     2.9139   39.55  &lt; 2e-16 ***
+## b 118.6875     7.8925   15.04  &lt; 2e-16 ***
+## c   0.1235     0.0171    7.22 2.44e-09 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 13.21 on 51 degrees of freedom
+## 
+## Number of iterations to convergence: 5 
+## Achieved convergence tolerance: 2.391e-06</code></pre>
+<p>It seems that all parameters are significantly different from 0, but this does not mean that the parameters should be retained in the model! Looking at the estimates and their standard errors we see that a’s estimate does not differ from b’s by more than 2 standard errors (a convention).</p>
+<p>So, let’s try a simpler model than this 3-parameter asymptotic exponential: a 2-parameter asymptotic exponential.Then, let’s compare the two.</p>
+<pre class="r"><code>nlm_2 &lt;- nls(bone~a*(1-exp(-c*age)),start=list(a=120,c=0.064),data=data)
+summary(nlm_2)</code></pre>
+<pre><code>## 
+## Formula: bone ~ a * (1 - exp(-c * age))
+## 
+## Parameters:
+##    Estimate Std. Error t value Pr(&gt;|t|)    
+## a 115.58056    2.84365  40.645  &lt; 2e-16 ***
+## c   0.11882    0.01233   9.635 3.69e-13 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 13.1 on 52 degrees of freedom
+## 
+## Number of iterations to convergence: 5 
+## Achieved convergence tolerance: 1.369e-06</code></pre>
+<pre class="r"><code>anova(nlm,nlm_2)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: bone ~ a - b * exp(-c * age)
+## Model 2: bone ~ a * (1 - exp(-c * age))
+##   Res.Df Res.Sum Sq Df  Sum Sq F value Pr(&gt;F)
+## 1     51     8897.3                          
+## 2     52     8929.1 -1 -31.843  0.1825  0.671</code></pre>
+<p>Since p=0.671, we are justified in fitting this simpler model and accept this model as the minimial adequate model.Whenever we are choosing the best model, always keep in mind that parsimony is most preferred. Since the models aren’t significantly different, we are going to choose the one with less parameters. Let’s plot the model curve through the scatterplot of the data.</p>
+<pre class="r"><code>data$predictions &lt;- predict(nlm_2) #assign the values from the model to a column in data sheet 
+ggplot(data,aes(x=age,y=bone))+
+  geom_line(aes(y=predictions), colour=&quot;blue&quot;)+
+  geom_point()+theme_few()+ylab(&quot;Jaw Bone Length&quot;) + xlab(&quot;Age&quot;)</code></pre>
+<p><img src="non-linear_w_poly_files/figure-html/plot%20results-1.png" width="672" /></p>
+</div>
+<div id="model-fit---s-value" class="section level1">
+<h1>Model Fit - S value</h1>
+<p>The fit of non-linear models, unlike linear models, cannot be compared using R-square values and instead rely on S values. S values give you the average absolute distance from the data points to the regression line using the units of the response variable. The smaller the value, the better your model fit.</p>
+<p>This can be found in the summary() output labeled “Residual standard error.” Now, for these models it looks like they have relatively the same values, so you can either use the anova() or the S value to determine better fit.</p>
+<p>If we want to compare visually as well, we can plot the predictions of the models together. If we want to compare the cubic polynomial to the second non-linear model, we can plot the models below. Red refers to the cubic polynomial and blue refers to the non-linear model. <img src="non-linear_w_poly_files/figure-html/compare-1.png" width="672" /></p>
+</div>
+<div id="what-model-do-i-use" class="section level1">
+<h1>What model do I use?</h1>
+<p>That seems to always be the question and will continue to be the question! When a linear model doesn’t fit your data, the next step in selecting the best model depends on your specific data set, the literature, and many other things.</p>
+<p>When considering non-linear models, it can be difficult to set up the models if there is no previous literature or theory on the best equation to use. Also, interpreting the effect of the independent variable on the dependent variable isn’t straight forward and there are no p-values that can be calculated.</p>
+<p>If linear models, including polynomials and generalized linear models, and non-linear models aren’t working for you, it may be time to consider generalized additive models (GAMs).</p>
+</div>
+<div id="online-resources" class="section level1">
+<h1>Online resources</h1>
+<p><a href="http://statisticsbyjim.com/regression/choose-linear-nonlinear-regression/" class="uri">http://statisticsbyjim.com/regression/choose-linear-nonlinear-regression/</a> <a href="https://datascienceplus.com/first-steps-with-non-linear-regression-in-r/" class="uri">https://datascienceplus.com/first-steps-with-non-linear-regression-in-r/</a> <a href="http://blog.minitab.com/blog/adventures-in-statistics-2/what-is-the-difference-between-linear-and-nonlinear-equations-in-regression-analysis" class="uri">http://blog.minitab.com/blog/adventures-in-statistics-2/what-is-the-difference-between-linear-and-nonlinear-equations-in-regression-analysis</a> <a href="http://blog.minitab.com/blog/adventures-in-statistics-2/curve-fitting-with-linear-and-nonlinear-regression" class="uri">http://blog.minitab.com/blog/adventures-in-statistics-2/curve-fitting-with-linear-and-nonlinear-regression</a> <a href="https://datascienceplus.com/fitting-polynomial-regression-r/" class="uri">https://datascienceplus.com/fitting-polynomial-regression-r/</a> <a href="https://www.r-bloggers.com/fitting-polynomial-regression-in-r/" class="uri">https://www.r-bloggers.com/fitting-polynomial-regression-in-r/</a> R book by Crawley</p>
+<div id="section" class="section level3">
+<h3></h3>
+</div>
+</div>
+<div id="notes-by-me-kass-from-class" class="section level1">
+<h1>notes by me (Kass) from class:</h1>
+</div>
+<div id="we-started-with-linear-model---lm-yx" class="section level1">
+<h1>we started with linear model &lt;- lm (y~x)</h1>
+</div>
+<div id="then-we-tried-a-curvy-model---lmylogx1-the-1-is-because-we-had-a-0-to-account-for" class="section level1">
+<h1>then we tried a curvy model &lt;- lm(y~log(x+1)) #the +1 is because we had a 0 to account for</h1>
+</div>
+<div id="then-we-tried-different-polynomial-models-which-we-can-compare-with-anovas" class="section level1">
+<h1>then we tried different polynomial models which we can compare with anovas</h1>
+</div>
+<div id="poly--lmyxix2" class="section level1">
+<h1>poly &lt;-lm(y~x+I(x^2))</h1>
+</div>
+<div id="so-finally-we-tried-a-nonlinear-model---nlsya1-e-cx-which-is-always-based-on-theory" class="section level1">
+<h1>so finally we tried a nonlinear model &lt;- nls(y~a*(1-e^-cx)) #which is always based on theory</h1>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
