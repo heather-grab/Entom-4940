@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Collin Edwards" />
+
+
+<title>Permutation testing</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Entom 4940: Advanced Statistical Methods in Ecology</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Permutation testing</h1>
+<h4 class="author"><em>Collin Edwards</em></h4>
+<h4 class="date"><em>May 1, 2018</em></h4>
+
+</div>
+
+
+<!-- # Basic Idea of stats tests -->
+<!-- ## The challenge we face: assuming and estimating the error distribution -->
+<!-- ## The other assumption: Asymtotics -->
+<!-- # But there's another way: permutation! -->
+<!-- ## Idea: exact test, only for large data -->
+<!-- ## Advantages of permutation testing -->
+<!-- ### intuitive -->
+<!-- ### doesn't make assumptions about distribution -->
+<!-- ### Can do permutation tests for complicated metrics where the actual distribution is unclear/complicated -->
+<!-- # Examples -->
+<div id="example-with-t-test-permuting-by-hand" class="section level2">
+<h2>Example with T test, permuting by hand</h2>
+<p>Let’s start by making some simple data to work with.</p>
+<pre class="r"><code>gender=c(&quot;m&quot;,&quot;m&quot;,&quot;m&quot;,&quot;m&quot;,&quot;m&quot;,&quot;m&quot;,&quot;m&quot;,
+         &quot;f&quot;,&quot;f&quot;,&quot;f&quot;,&quot;f&quot;,&quot;f&quot;)
+biomass=c(1.1, 1.2, .9, 1.2, .8, 1.1, 1.2,
+          1.1, 1.4, 1.3, 1.6, 1.4)
+data=data.frame(biomass=biomass,
+                gender=gender)
+col.vec=gender
+col.vec[col.vec==&quot;m&quot;]=&#39;red&#39;
+col.vec[col.vec==&quot;f&quot;]=&#39;blue&#39;</code></pre>
+<p>If we plot the data, they look like they’re notably different from each other.</p>
+<pre class="r"><code>plot(jitter(as.numeric(data$gender),factor=.2),
+     data$biomass, 
+     type=&#39;p&#39;,
+     ylim=c(0,max(data$biomass)),
+     xaxt=&#39;n&#39;,
+     ylab=&quot;biomass&quot;,
+     xlab=&quot;&quot;,
+     col=col.vec
+)
+f.mean=mean(data$biomass[data$gender==&quot;f&quot;])
+m.mean=mean(data$biomass[data$gender==&quot;m&quot;])
+axis(1, at=c(1,2), labels=c(&quot;female&quot;,&quot;male&quot;))
+#add line for female average
+abline(h=f.mean,
+       col=&#39;blue&#39;,xpd=FALSE)
+abline(h=m.mean,
+       col=&#39;red&#39;,xpd=FALSE)
+arrows(x0=1.4, 
+       y0=m.mean,
+       y1=f.mean,
+       length=.1,
+       code=3
+)
+text(x=1.45,y=mean(c(f.mean,m.mean)),
+     labels=as.character(round(abs(diff(c(f.mean,m.mean))), 2))
+)</code></pre>
+<p><img src="permutation_testing_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Is that significant? That is, is our data sufficiently unlikely if our null hypothesis <span class="math inline">\(H_0\)</span> (females and males have the same mean) is true?</p>
+<p>If <span class="math inline">\(H_0\)</span> is true, then it shouldn’t matter which of our individuals were males and which were females. So we can try randomly re-assigning the genders to our biomasses.</p>
+<pre class="r"><code>dat.new=data
+dat.new$gender=sample(data$gender,replace=FALSE) #this is the key here! Sample predictor without replacement
+#okay, let&#39;s plot this again.
+col.new=as.character(dat.new$gender)
+col.new[col.new==&quot;m&quot;]=&#39;red&#39;
+col.new[col.new==&quot;f&quot;]=&#39;blue&#39;
+plot(jitter(as.numeric(dat.new$gender),factor=.2),
+     dat.new$biomass, 
+     type=&#39;p&#39;,
+     ylim=c(0,max(dat.new$biomass)),
+     xaxt=&#39;n&#39;,
+     ylab=&quot;biomass&quot;,
+     xlab=&quot;&quot;,
+     col=col.new,
+     main=&quot;permuted data&quot;
+)
+f.mean.new=mean(dat.new$biomass[dat.new$gender==&quot;f&quot;])
+m.mean.new=mean(dat.new$biomass[dat.new$gender==&quot;m&quot;])
+axis(1, at=c(1,2), labels=c(&quot;female&quot;,&quot;male&quot;))
+#add line for female average
+abline(h=f.mean.new,
+       col=&#39;blue&#39;,xpd=FALSE)
+abline(h=m.mean.new,
+       col=&#39;red&#39;,xpd=FALSE)
+# arrows(x0=1.4, 
+#        y0=m.mean.new,
+#        y1=f.mean.new,
+#        length=.1,
+#        code=3
+#        )
+text(x=1.5,y=.9*max(dat.new$biomass),
+     labels=paste(&quot;difference of&quot;, round(abs(diff(c(f.mean.new,m.mean.new))), 4))
+)</code></pre>
+<p><img src="permutation_testing_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>So that’s one permutation. But let’s generate the distribution of differences under the null hypothesis.</p>
+<pre class="r"><code>N=10000 #number of times to permute things
+null.diff=rep(-99,N) #vector to store the differences
+
+#we want to randomly resample a ton of times, so we&#39;ll use a for loop.
+
+for(i in 1:N){
+  dat.new=data
+  dat.new$gender=sample(data$gender,replace=FALSE) #this is the key here! Sample predictor without replacement
+  f.mean.new=mean(dat.new$biomass[dat.new$gender==&quot;f&quot;])
+  m.mean.new=mean(dat.new$biomass[dat.new$gender==&quot;m&quot;])
+  null.diff[i]=f.mean.new-m.mean.new
+}</code></pre>
+<p>Now that we have the distribution of our test statistic (difference in means between males and females) under the null hypothesis, we can ask if our observation is an outlier of this distribution:</p>
+<pre class="r"><code>dens=density(null.diff)
+plot(dens)
+abline(v=f.mean-m.mean,xpd=FALSE,col=&#39;red&#39;)</code></pre>
+<p><img src="permutation_testing_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>#What&#39;s the one-tailed p value? What fraction of permutations have a difference of means higher than our observed difference of means?
+sum(null.diff&gt;f.mean-m.mean)/N</code></pre>
+<pre><code>## [1] 0.0043</code></pre>
+<pre class="r"><code>#what about two-tailed?
+sum(abs(null.diff)&gt;abs(f.mean-m.mean))/N</code></pre>
+<pre><code>## [1] 0.0166</code></pre>
+</div>
+<div id="permutation-using-package-lmperm" class="section level2">
+<h2>Permutation using package <code>lmPerm</code></h2>
+<p>We don’t actually need to write out the permutation test ourselves! We’ll use my data set of caterpillar growth on different milkweed plants, with plant traits as predictors.</p>
+<ul>
+<li><em>plant</em>: identifier for the plant used</li>
+<li><em>cat.weight</em>: final weight of caterpillar after experiment</li>
+<li><em>tough</em>: measure of leaf toughness using penetrometer</li>
+<li><em>lat.mean</em>: measure of plant’s latex production</li>
+<li><em>sla</em>: Specific Leaf Area; measure of leaf thickness/density</li>
+<li><em>date</em>: day the caterpillars were put out</li>
+</ul>
+<pre class="r"><code>require(lmPerm)
+#lmPerm has the lmp() function, which fits linear models in what is probably a familiar format.
+dat.cat=read.csv(&#39;curated_caterpillar_data.csv&#39;)
+
+out.lmp=lmp(cat.weight ~ tough+lat.mean+sla,data=dat.cat)</code></pre>
+<pre><code>## [1] &quot;Settings:  unique SS : numeric variables centered&quot;</code></pre>
+<pre class="r"><code>summary(out.lmp)</code></pre>
+<pre><code>## 
+## Call:
+## lmp(formula = cat.weight ~ tough + lat.mean + sla, data = dat.cat)
+## 
+## Residuals:
+##        Min         1Q     Median         3Q        Max 
+## -0.0122452 -0.0043345 -0.0002516  0.0035568  0.0163015 
+## 
+## Coefficients:
+##           Estimate Iter Pr(Prob)
+## tough    4.636e-05  272    0.272
+## lat.mean 3.760e-01   51    0.882
+## sla      5.634e+00  529    0.161
+## 
+## Residual standard error: 0.007419 on 43 degrees of freedom
+## Multiple R-Squared: 0.0815,  Adjusted R-squared: 0.01742 
+## F-statistic: 1.272 on 3 and 43 DF,  p-value: 0.2961</code></pre>
+<pre class="r"><code># Look familiar?
+# Iter is a meaasure of the number of iterations used before the algorithm decided it had the probability estimated well enough
+
+#We can also use an anova test, with aovp()
+out.aovp=aovp(cat.weight ~ tough+lat.mean+sla,data=dat.cat)</code></pre>
+<pre><code>## [1] &quot;Settings:  unique SS : numeric variables centered&quot;</code></pre>
+<pre class="r"><code>summary(out.aovp)</code></pre>
+<pre><code>## Component 1 :
+##             Df   R Sum Sq  R Mean Sq Iter Pr(Prob)
+## tough        1 0.00011993 1.1993e-04  203   0.3300
+## lat.mean     1 0.00001368 1.3680e-05   77   0.5714
+## sla          1 0.00009390 9.3904e-05  182   0.3571
+## Residuals   43 0.00236657 5.5037e-05</code></pre>
+<p>Note that the standard R approach for <code>lm</code> significance testing uses sequential testing. This is generally BAD, which why it’s better to use the <code>drop1()</code> function to test whether terms should be included in the model. <code>aovp()</code> uses this improved approach by default, but if you want to to be equivalent to anova/lm output, you can give the argument <code>seqs=TRUE</code> to make <code>aovp</code> use the (bad) approach of <code>lm</code> and <code>anova</code>.</p>
+<p>Note that <code>lmp()</code> doesn’t handle multi-stratum data, nor random effects; these are tricky to handle with permutation tests (which data points are exchangeable? In what way?). However, <code>aovp()</code> can handle multi-stratum data, just like <code>aov()</code> does. It can also handle blocking terms, with</p>
+<pre class="r"><code>out.aovp=aovp(cat.weight ~ tough+lat.mean+sla + Error(date),
+              data=dat.cat)</code></pre>
+<pre><code>## [1] &quot;Settings:  unique SS : numeric variables centered&quot;</code></pre>
+<pre class="r"><code>summary(out.aovp)</code></pre>
+<pre><code>## 
+## Error: date
+## Component 1 :
+##           Df   R Sum Sq  R Mean Sq Pr(Exact)
+## tough      1 0.00091066 0.00091066         1
+## Residuals  1 0.00020891 0.00020891          
+## 
+## 
+## Error: Within
+## Component 1 :
+##           Df   R Sum Sq  R Mean Sq Iter Pr(Prob)
+## tough      1 0.00001140 1.1395e-05   51   1.0000
+## lat.mean   1 0.00002065 2.0648e-05   66   0.6061
+## Residuals 42 0.00142495 3.3927e-05</code></pre>
+</div>
+<div id="when-should-we-use-permutation-tests" class="section level2">
+<h2>When should we use permutation tests?</h2>
+<ul>
+<li>We can use them for a lot of things! In some ways it’s better to ask when we shouldn’t use them</li>
+<li>If we’re not confident in the assumptions of standard tests</li>
+<li>when sample sizes are small, tests based on normality are less robust</li>
+<li>If we have few degrees of freedom (lmPerm has techniques to work with data that has 0 DoF!)</li>
+<li>If the null hypothesis is complicated, so distribution of null hypothesis is unclear</li>
+</ul>
+</div>
+<div id="when-shouldnt-we-use-permutation-tests" class="section level2">
+<h2>When shouldn’t we use permutation tests?</h2>
+<ul>
+<li>If you run into computational time constraints. Permutation tests can take a long time to run, especially with large data sets.</li>
+<li>If you already have a data analysis pipeline, and there’s not an easy permutation test alternative you can plug into if (if you’re confident in the assumptions of your present test)</li>
+</ul>
+</div>
+<div id="final-comment" class="section level2">
+<h2>Final comment:</h2>
+<p>For more complex models, the R package <code>coin</code> is worth looking at. It’s less intuitive to use, but provides permutation-based alternatives for a multitude of standard frequentist tests.</p>
+<p>If you’re using <code>lmPerm</code>, I highly recommend checkout out the vignette (<a href="https://cran.r-project.org/web/packages/lmPerm/vignettes/lmPerm.pdf" class="uri">https://cran.r-project.org/web/packages/lmPerm/vignettes/lmPerm.pdf</a>), which in addition to providing great explanations for the underlying theory and applications, also uses examples from Harry Potter.</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

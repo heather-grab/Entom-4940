@@ -1,0 +1,193 @@
+---
+title: "Permutation testing"
+author: "Collin Edwards"
+date: "May 1, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- # Basic Idea of stats tests -->
+<!-- ## The challenge we face: assuming and estimating the error distribution -->
+<!-- ## The other assumption: Asymtotics -->
+<!-- # But there's another way: permutation! -->
+<!-- ## Idea: exact test, only for large data -->
+<!-- ## Advantages of permutation testing -->
+<!-- ### intuitive -->
+<!-- ### doesn't make assumptions about distribution -->
+<!-- ### Can do permutation tests for complicated metrics where the actual distribution is unclear/complicated -->
+<!-- # Examples -->
+## Example with T test, permuting by hand
+Let's start by making some simple data to work with.
+```{r}
+gender=c("m","m","m","m","m","m","m",
+         "f","f","f","f","f")
+biomass=c(1.1, 1.2, .9, 1.2, .8, 1.1, 1.2,
+          1.1, 1.4, 1.3, 1.6, 1.4)
+data=data.frame(biomass=biomass,
+                gender=gender)
+col.vec=gender
+col.vec[col.vec=="m"]='red'
+col.vec[col.vec=="f"]='blue'
+```
+
+If we plot the data, they look like they're notably different from each other.
+```{r}
+plot(jitter(as.numeric(data$gender),factor=.2),
+     data$biomass, 
+     type='p',
+     ylim=c(0,max(data$biomass)),
+     xaxt='n',
+     ylab="biomass",
+     xlab="",
+     col=col.vec
+)
+f.mean=mean(data$biomass[data$gender=="f"])
+m.mean=mean(data$biomass[data$gender=="m"])
+axis(1, at=c(1,2), labels=c("female","male"))
+#add line for female average
+abline(h=f.mean,
+       col='blue',xpd=FALSE)
+abline(h=m.mean,
+       col='red',xpd=FALSE)
+arrows(x0=1.4, 
+       y0=m.mean,
+       y1=f.mean,
+       length=.1,
+       code=3
+)
+text(x=1.45,y=mean(c(f.mean,m.mean)),
+     labels=as.character(round(abs(diff(c(f.mean,m.mean))), 2))
+)
+
+```
+
+Is that significant? That is, is our data sufficiently unlikely if our null hypothesis $H_0$ (females and males have the same mean) is true?
+
+If $H_0$ is true, then it shouldn't matter which of our individuals were males and which were females. So we can try randomly re-assigning the genders to our biomasses.
+
+```{r}
+dat.new=data
+dat.new$gender=sample(data$gender,replace=FALSE) #this is the key here! Sample predictor without replacement
+#okay, let's plot this again.
+col.new=as.character(dat.new$gender)
+col.new[col.new=="m"]='red'
+col.new[col.new=="f"]='blue'
+plot(jitter(as.numeric(dat.new$gender),factor=.2),
+     dat.new$biomass, 
+     type='p',
+     ylim=c(0,max(dat.new$biomass)),
+     xaxt='n',
+     ylab="biomass",
+     xlab="",
+     col=col.new,
+     main="permuted data"
+)
+f.mean.new=mean(dat.new$biomass[dat.new$gender=="f"])
+m.mean.new=mean(dat.new$biomass[dat.new$gender=="m"])
+axis(1, at=c(1,2), labels=c("female","male"))
+#add line for female average
+abline(h=f.mean.new,
+       col='blue',xpd=FALSE)
+abline(h=m.mean.new,
+       col='red',xpd=FALSE)
+# arrows(x0=1.4, 
+#        y0=m.mean.new,
+#        y1=f.mean.new,
+#        length=.1,
+#        code=3
+#        )
+text(x=1.5,y=.9*max(dat.new$biomass),
+     labels=paste("difference of", round(abs(diff(c(f.mean.new,m.mean.new))), 4))
+)
+```
+
+So that's one permutation. But let's generate the distribution of differences under the null hypothesis.
+
+```{r}
+N=10000 #number of times to permute things
+null.diff=rep(-99,N) #vector to store the differences
+
+#we want to randomly resample a ton of times, so we'll use a for loop.
+
+for(i in 1:N){
+  dat.new=data
+  dat.new$gender=sample(data$gender,replace=FALSE) #this is the key here! Sample predictor without replacement
+  f.mean.new=mean(dat.new$biomass[dat.new$gender=="f"])
+  m.mean.new=mean(dat.new$biomass[dat.new$gender=="m"])
+  null.diff[i]=f.mean.new-m.mean.new
+}
+```
+
+Now that we have the distribution of our test statistic (difference in means between males and females) under the null hypothesis, we can ask if our observation is an outlier of this distribution:
+
+```{r}
+dens=density(null.diff)
+plot(dens)
+abline(v=f.mean-m.mean,xpd=FALSE,col='red')
+#What's the one-tailed p value? What fraction of permutations have a difference of means higher than our observed difference of means?
+sum(null.diff>f.mean-m.mean)/N
+#what about two-tailed?
+sum(abs(null.diff)>abs(f.mean-m.mean))/N
+
+```
+
+## Permutation using package `lmPerm`
+We don't actually need to write out the permutation test ourselves! We'll use my data set of caterpillar growth on different milkweed plants, with plant traits as predictors.
+
+* *plant*: identifier for the plant used
+* *cat.weight*: final weight of caterpillar after experiment
+* *tough*: measure of leaf toughness using penetrometer
+* *lat.mean*: measure of plant's latex production
+* *sla*: Specific Leaf Area; measure of leaf thickness/density
+* *date*: day the caterpillars were put out
+
+```{r}
+require(lmPerm)
+#lmPerm has the lmp() function, which fits linear models in what is probably a familiar format.
+dat.cat=read.csv('curated_caterpillar_data.csv')
+
+out.lmp=lmp(cat.weight ~ tough+lat.mean+sla,data=dat.cat)
+summary(out.lmp)
+
+# Look familiar?
+# Iter is a meaasure of the number of iterations used before the algorithm decided it had the probability estimated well enough
+
+#We can also use an anova test, with aovp()
+out.aovp=aovp(cat.weight ~ tough+lat.mean+sla,data=dat.cat)
+summary(out.aovp)
+```
+
+
+Note that the standard R approach for `lm` significance testing uses sequential testing. This is generally BAD, which why it's better to use the `drop1()` function to test whether terms should be included in the model. `aovp()` uses this improved approach by default, but if you want to to be equivalent to anova/lm output, you can give the argument `seqs=TRUE` to make `aovp` use the (bad) approach of `lm` and `anova`.
+
+Note that `lmp()` doesn't handle multi-stratum data, nor random effects; these are tricky to handle with permutation tests (which data points are exchangeable? In what way?). However, `aovp()` can handle multi-stratum data, just like `aov()` does. It can also handle blocking terms, with
+
+```{r}
+out.aovp=aovp(cat.weight ~ tough+lat.mean+sla + Error(date),
+              data=dat.cat)
+summary(out.aovp)
+```
+
+## When should we use permutation tests?
+
+* We can use them for a lot of things! In some ways it's better to ask when we shouldn't use them
+* If we're not confident in the assumptions of standard tests
+* when sample sizes are small, tests based on normality are less robust 
+* If we have few degrees of freedom (lmPerm has techniques to work with data that has  0 DoF!)
+* If the null hypothesis is complicated, so distribution of null hypothesis is unclear
+
+
+## When shouldn't we use permutation tests?
+
+* If you run into computational time constraints. Permutation tests can take a long time to run, especially with large data sets. 
+* If you already have a data analysis pipeline, and there's not an easy permutation test alternative you can plug into if (if you're confident in the assumptions of your present test)
+
+## Final comment:
+
+
+For more complex models, the R package `coin` is worth looking at. It's less intuitive to use, but provides permutation-based alternatives for a multitude of standard frequentist tests.
+
+If you're using `lmPerm`, I highly recommend checkout out the vignette (https://cran.r-project.org/web/packages/lmPerm/vignettes/lmPerm.pdf), which in addition to providing great explanations for the underlying theory and applications, also uses examples from Harry Potter.

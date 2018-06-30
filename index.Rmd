@@ -32,4 +32,4 @@ ________________
 ### [Machine Learning Techniques](http://heather-grab.github.io/Entom-4940/ML_lesson.html)
 ### Cluster Analysis
 ### [Fourth Corner and RQL Analysis](http://heather-grab.github.io/Entom-4940/rql.html)
-### Permutation and Randomization Tests
+### [Permutation and Randomization Tests](http://heather-grab.github.io/Entom-4940/permutation_testing.html)
