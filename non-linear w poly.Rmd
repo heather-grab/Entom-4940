@@ -23,7 +23,7 @@ library(sjPlot)
 #("~/Box/Entom 4940: Advanced Statistical Methods (Heather Connelly)/Mar 14: Non-linear models and polynomials")
 ```
 
-### Contributed by Rachael Mady & Danielle Rutkowski - March 14, 2018
+### Contributed by Rachael Mady & Danielle Rutkowski
 
 ##Linear versus Non-linear models
 A non-linear model is a model that is not linear. This simple statement can be confusing if we don't know what we are referring to as linear. When we say "linear" we are referring to the parameters in a model. This can be confusing because the independent variable can be transformed in ways that produce curves, such as a quadratic transformation.

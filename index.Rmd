@@ -29,7 +29,7 @@ ________________
 ### [Polynomials and Non Linear Models](http://heather-grab.github.io/Entom-4940/non-linear_w_poly.html)
 ### Structural Equation Models
 ### Survival Analysis
-### Machine Learning Techniques
+### [Machine Learning Techniques](http://heather-grab.github.io/Entom-4940/ML_lesson.html)
 ### Cluster Analysis
 ### [Fourth Corner and RQL Analysis](http://heather-grab.github.io/Entom-4940/rql.html)
 ### Permutation and Randomization Tests
