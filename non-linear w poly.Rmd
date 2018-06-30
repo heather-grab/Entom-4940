@@ -23,6 +23,8 @@ library(sjPlot)
 #("~/Box/Entom 4940: Advanced Statistical Methods (Heather Connelly)/Mar 14: Non-linear models and polynomials")
 ```
 
+### Contributed by Rachael Mady & Danielle Rutkowski - March 14, 2018
+
 ##Linear versus Non-linear models
 A non-linear model is a model that is not linear. This simple statement can be confusing if we don't know what we are referring to as linear. When we say "linear" we are referring to the parameters in a model. This can be confusing because the independent variable can be transformed in ways that produce curves, such as a quadratic transformation.
 
@@ -41,7 +43,7 @@ First load the data from the R Book by Crawley. It's a record of individual deer
 ```{r load data}
 
 data <- 
-  "nl_poly_data.csv" %>% 
+  "jaw_bone.csv" %>% 
   read.csv()
 
 ```
@@ -189,6 +191,12 @@ When considering non-linear models, it can be difficult to set up the models if 
 
 If linear models, including polynomials and generalized linear models, and  non-linear models aren't working for you, it may be time to consider generalized additive models (GAMs).
 
+# Overview
+we started with linear model <- lm (y~x)
+then we tried a curvy model <- lm(y~log(x+1)) #the +1 is because we had a 0 to account for
+then we tried different polynomial models which we can compare with anovas
+poly <-lm(y~x+I(x^2))
+so finally we tried a nonlinear model <- nls(y~a*(1-e^-cx)) #which is always based on theory
 
 
 # Online resources
@@ -200,13 +208,7 @@ If linear models, including polynomials and generalized linear models, and  non-
 <https://www.r-bloggers.com/fitting-polynomial-regression-in-r/>
 R book by Crawley
 
-###
-#notes by me (Kass) from class:
-#we started with linear model <- lm (y~x)
-#then we tried a curvy model <- lm(y~log(x+1)) #the +1 is because we had a 0 to account for
-#then we tried different polynomial models which we can compare with anovas
-#poly <-lm(y~x+I(x^2))
-#so finally we tried a nonlinear model <- nls(y~a*(1-e^-cx)) #which is always based on theory
+
 
 
 

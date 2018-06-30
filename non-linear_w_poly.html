@@ -300,6 +300,9 @@ div.tocify {
 </div>
 
 
+<div id="contributed-by-rachael-mady-danielle-rutkowski---march-14-2018" class="section level3">
+<h3>Contributed by Rachael Mady &amp; Danielle Rutkowski - March 14, 2018</h3>
+</div>
 <div id="linear-versus-non-linear-models" class="section level2">
 <h2>Linear versus Non-linear models</h2>
 <p>A non-linear model is a model that is not linear. This simple statement can be confusing if we don’t know what we are referring to as linear. When we say “linear” we are referring to the parameters in a model. This can be confusing because the independent variable can be transformed in ways that produce curves, such as a quadratic transformation.</p>
@@ -311,7 +314,7 @@ div.tocify {
 <p>When first working with your data, it is best to fit a linear model. While non-linear models provide more flexibility than linear models, they are not as easy to interpret and understand as linear models</p>
 <p>Let’s work through an example. First load the data from the R Book by Crawley. It’s a record of individual deer’s jaw bone length and age.</p>
 <pre class="r"><code>data &lt;- 
-  &quot;nl_poly_data.csv&quot; %&gt;% 
+  &quot;jaw_bone.csv&quot; %&gt;% 
   read.csv()</code></pre>
 <p>Make sure that the data loaded correctly.</p>
 <pre><code>##         age      bone
@@ -505,30 +508,13 @@ ggplot(data,aes(x=age,y=bone))+
 <p>When considering non-linear models, it can be difficult to set up the models if there is no previous literature or theory on the best equation to use. Also, interpreting the effect of the independent variable on the dependent variable isn’t straight forward and there are no p-values that can be calculated.</p>
 <p>If linear models, including polynomials and generalized linear models, and non-linear models aren’t working for you, it may be time to consider generalized additive models (GAMs).</p>
 </div>
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>we started with linear model &lt;- lm (y~x) then we tried a curvy model &lt;- lm(y~log(x+1)) #the +1 is because we had a 0 to account for then we tried different polynomial models which we can compare with anovas poly &lt;-lm(y~x+I(x^2)) so finally we tried a nonlinear model &lt;- nls(y~a*(1-e^-cx)) #which is always based on theory</p>
+</div>
 <div id="online-resources" class="section level1">
 <h1>Online resources</h1>
 <p><a href="http://statisticsbyjim.com/regression/choose-linear-nonlinear-regression/" class="uri">http://statisticsbyjim.com/regression/choose-linear-nonlinear-regression/</a> <a href="https://datascienceplus.com/first-steps-with-non-linear-regression-in-r/" class="uri">https://datascienceplus.com/first-steps-with-non-linear-regression-in-r/</a> <a href="http://blog.minitab.com/blog/adventures-in-statistics-2/what-is-the-difference-between-linear-and-nonlinear-equations-in-regression-analysis" class="uri">http://blog.minitab.com/blog/adventures-in-statistics-2/what-is-the-difference-between-linear-and-nonlinear-equations-in-regression-analysis</a> <a href="http://blog.minitab.com/blog/adventures-in-statistics-2/curve-fitting-with-linear-and-nonlinear-regression" class="uri">http://blog.minitab.com/blog/adventures-in-statistics-2/curve-fitting-with-linear-and-nonlinear-regression</a> <a href="https://datascienceplus.com/fitting-polynomial-regression-r/" class="uri">https://datascienceplus.com/fitting-polynomial-regression-r/</a> <a href="https://www.r-bloggers.com/fitting-polynomial-regression-in-r/" class="uri">https://www.r-bloggers.com/fitting-polynomial-regression-in-r/</a> R book by Crawley</p>
-<div id="section" class="section level3">
-<h3></h3>
-</div>
-</div>
-<div id="notes-by-me-kass-from-class" class="section level1">
-<h1>notes by me (Kass) from class:</h1>
-</div>
-<div id="we-started-with-linear-model---lm-yx" class="section level1">
-<h1>we started with linear model &lt;- lm (y~x)</h1>
-</div>
-<div id="then-we-tried-a-curvy-model---lmylogx1-the-1-is-because-we-had-a-0-to-account-for" class="section level1">
-<h1>then we tried a curvy model &lt;- lm(y~log(x+1)) #the +1 is because we had a 0 to account for</h1>
-</div>
-<div id="then-we-tried-different-polynomial-models-which-we-can-compare-with-anovas" class="section level1">
-<h1>then we tried different polynomial models which we can compare with anovas</h1>
-</div>
-<div id="poly--lmyxix2" class="section level1">
-<h1>poly &lt;-lm(y~x+I(x^2))</h1>
-</div>
-<div id="so-finally-we-tried-a-nonlinear-model---nlsya1-e-cx-which-is-always-based-on-theory" class="section level1">
-<h1>so finally we tried a nonlinear model &lt;- nls(y~a*(1-e^-cx)) #which is always based on theory</h1>
 </div>
 
 
