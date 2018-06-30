@@ -17,7 +17,6 @@ knitr::opts_chunk$set(cache=TRUE)
 set.seed=37
 ```
 
-### Contributed by Collin Edwards
 
 #Overview
 ## What is machine learning?
