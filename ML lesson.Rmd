@@ -6,7 +6,6 @@ output:
   html_document:
     toc: true
     toc_float: true
-bibliography: ml-bibliography.bib
 nocite: |
   '@*'
     
@@ -472,5 +471,3 @@ You may find that you want multiple years of data. You can easily gather this by
 3. Use the `predict()` function. This exists for both `gam` and `randomForest` objects. The syntax for both of them is `predict(object=fittedmModelName, newdata=newExperimentalData)`
 4. You can then plot predicted versus actual counts, or do a regression, or however you like to compare them.
 
-
-# References

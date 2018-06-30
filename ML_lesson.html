@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Collin Edwards" />
+
+<meta name="date" content="2018-04-11" />
+
+<title>Machine Learning Discussion</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Entom 4940: Advanced Statistical Methods in Ecology</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Machine Learning Discussion</h1>
+<h4 class="author"><em>Collin Edwards</em></h4>
+<h4 class="date"><em>April 11, 2018</em></h4>
+
+</div>
+
+
+<div id="contributed-by-collin-edwards" class="section level3">
+<h3>Contributed by Collin Edwards</h3>
+</div>
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<div id="what-is-machine-learning" class="section level2">
+<h2>What is machine learning?</h2>
+<p>A practical definition of machine learning (shamelessly stolen from my advisor, <a href="http://www.eeb.cornell.edu/Ellner/">Stephen Ellner</a>) is: a statistical model for which you cannot write out an equation to completely describe how to fit the model. Instead, at least some part of model fitting involves a set of rules that the computer follows.</p>
+<p>There are a ton of techniques that fall into this category. In fact, fitting a linear regression with Ordinary Least Squares (OLS) follows this definition, but we usually don’t mean linear regression when we say “Machine Learning”. Instead, we mean things like</p>
+<ul>
+<li>regression trees</li>
+<li>Random Forests</li>
+<li>Splines</li>
+<li>Cluster Analysis</li>
+<li>multidimensional scaling</li>
+<li>Support vector machines</li>
+<li>neural nets</li>
+<li>S-maps and simplex projection</li>
+</ul>
+<p>Today I’m going to talk through when we might use machine learning techniques, then explain how to use two fairly simple and common ones.</p>
+</div>
+<div id="when-should-we-use-machine-learning" class="section level2">
+<h2>When should we use machine learning?</h2>
+<p>We can think about statistical models as falling into the general structure of <span class="math display">\[\hat{Y} = \hat{\beta}X\]</span> where <span class="math inline">\(\hat{Y}\)</span> is a vector or matrix of our estimated values of our response variable, <span class="math inline">\(\hat{\beta}\)</span> is a matrix of our estimated coefficients, and <span class="math inline">\(X\)</span> is a matrix of our measured predictors. This is just a fancy and compact way of saying that for each data point i, <span class="math display">\[\hat{y_i} = \hat{b_0} + \hat{b_1}x_1 + \hat{b_2}x_2 + ...\]</span></p>
+<p>The models we’ve talked about so far in this class are generally quite good at giving us values of <span class="math inline">\(\hat{\beta}\)</span> - at telling us how our predictors matter. For basic science, this is really handy. I want to know how the presence of trichomes or toxins in a plant influence the growth of herbivores, and traditional statistical techniques are good at doing that.</p>
+<p>However, regression approaches involve a lot of assumptions: Linearity, independence of predictors, the distribution of error, etc. Meeting these assumptions can really limit our ability to examine complex processes. While careful work, experiment design, model design and testing can help us overcome this limitation, they can’t completely remove them.</p>
+<p>Machine learning techniques are generally very robust to these problems, and as such they are among the best tools for calculating <span class="math inline">\(\hat{Y}\)</span>. Unfortunately, they are generally black boxes - while they are often the best tool for predicting response variables, it’s generally impossible to understand which of the predictors mattered, and in what way (<span class="math inline">\(\hat{\beta}\)</span>).</p>
+<p>So if you want to predict a pattern, machine learning tools are often really handy. If you want to understand what drives a pattern, machine learning tools are generally not great. For example, <a href="https://www.researchgate.net/profile/Ruth_Bennett2">Ruth Bennett</a> in natural resources has been doing work on golden-winged warbler wintering grounds in Central America. She’s observed birds in a number of different heights, and measured all kinds of information about those sites. If, for conservation purposes, she wants to produce a predictive map of where in central America the golden-winged warblers should be overwintering, she might benefit from using a machine learning model. On the other hand, if she wants to describe which habitat features explain the presence of golden-wing warblers, she probably wants to avoid machine learning models.</p>
+<p>As an aside, this is a similar trade-off to the use of AIC versus the use of p values when doing model selection in a regression framework. AIC is an approximation of cross-validation, which is determining how well a model predicts data points that weren’t used to construct it (ie how well does the model estimate <span class="math inline">\(\hat{Y}\)</span>). The p value associated with a coefficient, on the other hand, describes how sure we are about that part of <span class="math inline">\(\hat{\beta}\)</span>.</p>
+<p>One other advantage of machine learning techniques is that some of them can allow you to work with data for which you have far more predictors than data points. For example, in a recent paper we looked at how lagged climate effects impacted the growth and survivorship of perennial plants (<span class="citation">@teller_linking_2016</span>). We had daily measures of temperature and precipitation for multiple years before each census, and we suspected there might be interaction effects, so we had thousands of predictors to test (How did rainfall one day before census influence growth? How did rainfall two days before census influence growth? How did rainfall three days…). While it’s often my go-to tool, a mixed model would have been vastly overfitted, since we had more predictors than data points. However, using smoothing splines and random forests we were able to tackle this challenge and predict growth as a function of daily climate measures.</p>
+</div>
+</div>
+<div id="machine-learning-tools" class="section level1">
+<h1>Machine Learning Tools</h1>
+<p>Today I’m going to talk about two different machine learning tools that span of the gamut of scrutibility: <em>smoothing splines</em>, which are almost as interpretable as linear regressions, and <em>random forests</em>, which are quite inscrutable (although <a href="http://faculty.bscb.cornell.edu/~hooker/">Giles Hooker</a> here at Cornell has been working on some clever and incredibly difficult approaches to understanding how predictors influence the outcome of random forests).</p>
+</div>
+<div id="experimental-data" class="section level1">
+<h1>Experimental Data</h1>
+<p>I’m not really an empiricist. I don’t have much data of my own. But! We’re going to be trying out these new methods for picking up complicated relationships. So we don’t want to use empirical data anyways - we want to simulate data, so we know what the right answer is and can see how well our methods match it. We’ll do this by writing experiment functions.</p>
+<div id="experiment-1---simple-nonlinear" class="section level2">
+<h2>Experiment 1 - Simple nonlinear</h2>
+<p>Let’s start with a simple case. Hypothetical Collin goes out and does a bio-assay on hypothetical milkweed plants, looking at how well hypothetical aphids grow depending on the density of hypothetical trichomes. Hypothetically.</p>
+<p>To make things interesting, we’ll use a Gaussian response curve. This isn’t something that a standard regression can capture well.</p>
+<p>We’ll write our function so that we tell it how many data points we want (we’ll call that <code>n</code>), and it will spit out</p>
+<ul>
+<li>experimental data points which include noise</li>
+<li>actual values for those data points</li>
+<li>the points needed to draw a pretty curve</li>
+</ul>
+<p>We’ll also add in an optional variable which we’ll call <code>sd</code>, which determines how much random noise is used when generating the data points. For the sake of simplicity, let’s assume that trichome densities vary from 0 to 5, and biomass is always going to be 1 plus some amount)</p>
+<pre class="r"><code>exper_1 = function(n, sd=.1){
+  base.biomass=1 #level of biomass that we&#39;re varying from
+  # We&#39;re not using zero because that means we could get negative biomasses.
+  # Which would be totally fine, but might feel wrong
+  ##generate experimental data
+  trich=runif(n,min=0,max=5) #The trichomes of the plants we measured
+  biomass.true=2*dnorm(trich)+base.biomass #if there were no noise, biomass of aphids
+  biomass.noise=biomass.true+rnorm(n, mean=0, sd=sd) #actual biomass of aphids
+  data=as.data.frame(cbind(biomass.noise,biomass.true,trich)) #Save our data.
+  ## save vectors for plotting curve
+  curve.x=seq(0,5,by=.01)
+  curve.y=2*dnorm(curve.x)+base.biomass
+  curve.df=cbind(x=curve.x,y=curve.y)
+  return(list(data=data,curve.df=curve.df))  
+}</code></pre>
+<p>Shall we try running an experiment? Let’s go sample 60 plants</p>
+<pre class="r"><code>exper.1=exper_1(n=60,sd=.1)
+plot(x=exper.1$data$trich, y=exper.1$data$biomass.noise,
+     xlab=&quot;trichome density&quot;,
+     ylab=&quot;aphid biomass&quot;,
+     main=&quot;Simulated data (n=60)&quot;)
+points(exper.1$curve.df,type=&#39;l&#39;,ylim=c(.5,2))</code></pre>
+<p><img src="ML_lesson_files/figure-html/running%20experiment%201-1.png" width="672" /></p>
+<p>All right, so we can see the generating function (the black line), and our simulated data (all the points). Note that unlike the real world, we actually get to see that black line, and know that <em>that is exactly what the real underlying pattern is</em>. Which means when we get a fitted model, we can see how well it actually predicts the underlying process.</p>
+</div>
+<div id="experiment-2---nonlinear-with-other-predictors" class="section level2">
+<h2>Experiment 2 - nonlinear with other predictors</h2>
+<p>Okay, while we’re building experiments, let’s make a more complicated one. Or rather, the same experiment, but let’s measure some more things. Let’s say that in experiment two we also measure plant toxin level, plant height, and oh, maybe plant IQ (don’t ask how we measure that one). And let’s say that alphid biomass has the same Gaussian relationship with trichomes as before, but also we subtract an amount that’s linear dependent on toxins, and the two other predictors are red herrings - there’s no actual pattern there. We’ll change the base biomass to hopefully ensure we get no negative biomasses (but it’s totally fine if we do!). We’ll also choose a coefficient for toxins such that it and trichomes have the same general effect size.</p>
+<pre class="r"><code>exper_2 = function(n, sd=.1){
+  base.biomass=2 #level of biomass that we&#39;re varying from
+  # We&#39;re not using zero because that means we could get negative biomasses.
+  # Which would be totally fine, but might feel wrong
+  ##generate experimental data
+  trich=runif(n,min=0,max=5) #The trichomes of the plants we measured
+  toxin=runif(n=n)
+  height=runif(n=n, min=.2, max=1.5)
+  IQ=rnorm(n=n, mean=100, sd=10)
+  biomass.true=dnorm(trich)+base.biomass-.4*toxin #if there were no noise, biomass of aphids
+  biomass.noise=biomass.true+rnorm(n, mean=0, sd=sd) #actual biomass of aphids
+  data=as.data.frame(cbind(biomass.noise,biomass.true,trich, toxin, height, IQ)) #Save our data.
+  ## save vectors for plotting curves
+  trich.x=seq(0,5,by=.01)
+  trich.y=dnorm(trich.x)+base.biomass
+  trich.df=cbind(x=trich.x,y=trich.y)
+  toxin.x=seq(0,1,by=.01)
+  toxin.y=-toxin.x
+  toxin.df=cbind(x=toxin.x,y=toxin.y)
+  return(list(data=data,trich.df=trich.df,toxin.df=toxin.df))  
+}</code></pre>
+<p>Okay, the experimental design is done. Our <code>experiment_2</code> function will spit out <code>data</code>, the data frame <code>trich.df</code> which shows the real relationship between trichome and biomass, and <code>toxin.df</code>, which shows the real relationship between toxin and biomass.</p>
+<p>Let’s run our experiment again, and look at the pairwise relationship between predictors and responses. Remember, <code>biomass.noise</code> is the measured aphid weights. <code>biomass.true</code> is what values would be in the hypothetical perfect lab conditions, where we were capturing everything that influenced aphid biomass and all aphids were identical. So the relationship between those two is how much noise is in the system. And hopefully we see some patterns in the plots of trichome vs biomass, and the plots of toxin vs biomass. I’ll use the <code>panel.smooth</code> option to add a loess smoother line to those relationships; the red lines don’t say anything about significance, just about local patterns in the points.</p>
+<pre class="r"><code>exper.2=exper_2(50)
+pairs(exper.2$data,panel = panel.smooth)</code></pre>
+<p><img src="ML_lesson_files/figure-html/running%20experiment%202-1.png" width="672" /></p>
+<p>Now that we have our data, let’s talk about a few ways of using machine learning techniques to fit the data and perhaps explain the underlying patterns.</p>
+</div>
+</div>
+<div id="smoothing-splines" class="section level1">
+<h1>Smoothing Splines</h1>
+<p><em>Preface: this draws on a lot of different sources, but borrows heavily from the mgcv ESA workshop put on by <a href="http://www.noamross.net/">Noam Ross</a> and <a href="https://www.fromthebottomoftheheap.net/">Gavin Simpson</a>. Material from that workshop can be found <a href="https://noamross.github.io/mgcv-esa-workshop/">here</a></em></p>
+<div id="theory" class="section level2">
+<h2>Theory</h2>
+<p><em>I’ll be using a blackboard to explain this, as it’s way easier to see when things are drawn.</em></p>
+</div>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<p>Let’s try it out. First, what happens if we use a linear regression on our first experiment?</p>
+<pre class="r"><code>fit.lm=lm(biomass.noise ~ trich, data=exper.1$data)
+summary(fit.lm)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = biomass.noise ~ trich, data = exper.1$data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.31870 -0.11450 -0.01582  0.14110  0.33739 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  1.59391    0.04544   35.08  &lt; 2e-16 ***
+## trich       -0.16821    0.01514  -11.11 5.42e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.1615 on 58 degrees of freedom
+## Multiple R-squared:  0.6804, Adjusted R-squared:  0.6749 
+## F-statistic: 123.5 on 1 and 58 DF,  p-value: 5.416e-16</code></pre>
+<p>This is a nice example of why I like using gams (and why it’s important to spend a bit of time evaluating the models you use). If we just ran a linear regression and trusted our p values, we would assume there’s a negative linear relationship between biomass and trichomes. But if we plot it, we see that we’re missing something interesting:</p>
+<pre class="r"><code>plot(exper.1$data$trich, exper.1$data$biomass.noise,
+     xlab=&quot;trichomes&quot;, ylab=&quot;biomass&quot;,
+     main=&quot;trying linear fit&quot;)
+abline(fit.lm)
+points(exper.1$curve.df,type=&#39;l&#39;, col=&#39;blue&#39;, lty=2)</code></pre>
+<p><img src="ML_lesson_files/figure-html/plotting%20linear%20regression-1.png" width="672" /></p>
+<p>Here we see that the black line (our prediction, the best fitting linear model) does a poor job of fitting the real relationship. What about model diagnostics?</p>
+<pre class="r"><code>plot(fit.lm)</code></pre>
+<p><img src="ML_lesson_files/figure-html/linear%20regression%20diagnostics-1.png" width="672" /><img src="ML_lesson_files/figure-html/linear%20regression%20diagnostics-2.png" width="672" /><img src="ML_lesson_files/figure-html/linear%20regression%20diagnostics-3.png" width="672" /><img src="ML_lesson_files/figure-html/linear%20regression%20diagnostics-4.png" width="672" /></p>
+<p>We see that the model is really struggling to fit the data. There’s a clear pattern of fitted values versus residuals (we want a cloud with no trend), and the Q-Q plot isn’t consistent on the tails. The clear pattern of fitted vs residuals is the give away, though - it means there’s a pattern in the data that our model isn’t capturing.</p>
+<p>Okay, let’s fit things using a smoothing spline.</p>
+<pre class="r"><code>require(mgcv)</code></pre>
+<pre><code>## Loading required package: mgcv</code></pre>
+<pre><code>## This is mgcv 1.8-23. For overview type &#39;help(&quot;mgcv-package&quot;)&#39;.</code></pre>
+<pre class="r"><code>fit.gam=gam(biomass.noise ~ s(trich), data=exper.1$data,method = &quot;REML&quot;)
+plot(fit.gam, unconditional=TRUE, seWithMean=TRUE)
+points(exper.1$curve.df, col=&#39;blue&#39;, type=&#39;l&#39;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/smoothing%20spline%20experiment%201-1.png" width="672" /></p>
+<p>Awesome! However, our plot of the model doesn’t seem to match our data; check out the y axis - our curve is too low!. This is because the plot is of trichome term itself, after accounting for intercept. This might seem annoying in this case, but it’s very helpful when we’re fitting smooths to multiple predictors - the plots show the impact of each predictor separately. For this case, we can easily subtract the intercept from our data points and plot the generating line (in blue) and the data points (in circles)</p>
+<pre class="r"><code>plot(fit.gam, unconditional=TRUE,seWithMean=TRUE)
+points(x=exper.1$curve.df[,&quot;x&quot;],y=exper.1$curve.df[,&quot;y&quot;]-coef(fit.gam)[&quot;(Intercept)&quot;], col=&#39;blue&#39;, type=&#39;l&#39;)
+points(exper.1$data$trich, exper.1$data$biomass.noise-coef(fit.gam)[&quot;(Intercept)&quot;])</code></pre>
+<p><img src="ML_lesson_files/figure-html/smoothing%20spline%20experiment%201%20-%20with%20data-1.png" width="672" /></p>
+<p>This looks like a much better fit than our linear regression. Notice, though, that the spline is most inaccurate at the edges of our data. This is common with splines of any sort, since any section of a spline is informed by data on either side, and the edges lack data on one side. It’s also a nice warning - be wary of spline fits in regions with few data points.</p>
+<p>Let’s take a look at the summary of our model.</p>
+<pre class="r"><code>summary(fit.gam)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## biomass.noise ~ s(trich)
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  1.14532    0.01248   91.77   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##           edf Ref.df     F p-value    
+## s(trich) 4.09  5.058 88.59  &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.884   Deviance explained = 89.2%
+## -REML = -45.456  Scale est. = 0.0093465  n = 60</code></pre>
+<p>The <strong>deviance explained</strong> is like the <span class="math inline">\(R^2\)</span>, but continues to be useful when the sum of squared residuals isn’t a meaningful number. Because it’s computed using the likelihood of the data given the model, it’s based on the error distribution, and is different for different error distributions. If we’re using Gaussian error (like in this example) it’s equivalent to sum of squared residuals.</p>
+<p>The <strong>REML</strong> is the “REstricted Maximum Likelihood” score of our fitted model, which is used for smoothing. If you use a different smoothing criterion, you will have a different acronym here. It’s not something we really need to worry about.</p>
+<p>The <strong>scale estimate</strong> is the estimated scale parameter. I can’t find a good explanation for why that would matter to us, and it’s not something we will need for any of the standard diagnostics. So we can safely ignore it.</p>
+</div>
+<div id="basics-of-fitting-a-gam-e.g.spline-fitting" class="section level2">
+<h2>Basics of fitting a gam (e.g. spline fitting)</h2>
+<ul>
+<li>We use the <code>mgcv</code> package - it’s the most general and most easily-used package for gams in R. The <code>gam</code> package also does smoothing spline fitting, but can’t handle random effects and doesn’t automatically find the best smoothing parameter.</li>
+<li>Our model formula is written like for a glm, but anything we want to fit a flexible smoother to, we put <code>s()</code> around. For example, <code>gam(y ~ s(x1) + x2)</code> would fit y as a function of a flexible relationship with x1 and a linear relationship with x2.</li>
+<li>Within the <code>s()</code> term, we can choose what type of smoother we want to use with the <code>bs=</code> argument. The default is thin-plate regression splines. These are the optimal smoothers in a mathematical sense <span class="citation">@wood_thin_2003</span> (for normal situations), and are easy to implement (don’t have to worry about knots), so we’ll use those. This means that while we could add arguments inside of <code>s(x1)</code>, we generally won’t (unless we’re using random effects or handle things through time, see below). Information on smoothing options can be found <a href="https://stat.ethz.ch/R-manual/R-devel/library/mgcv/html/smooth.terms.html">here</a></li>
+<li>If you want to smooth data through time, you can use the <code>bs=gp</code> argument. This is a Gaussian process smoother, which can model correlation functions. If you’re instead trying to capture a cyclic repeating effect (like effect of month for a multi-year data set), you can use <code>bs=cc</code>, which is a penalized cyclic cubic spline.</li>
+<li>two dimensional smoothers (useful if you think there’s an interaction) can be fit with <code>s(x1,x2)</code> if predictors x1 and x2 are on similar scales, or <code>te(x1, x2)</code> if they’re on different scales (<code>te()</code> also works if they’re on the same scale). These approaches include main and interaction terms, analogous to <code>y ~ x1 * x2</code> for a linear regression.</li>
+<li>If you want to capture interaction only, use <code>ti(x1, x2)</code> instead. This might be useful if you’re interested in knowing whether the interaction between two predictors – beyond their main effect – is meaningful. You could do that with <code>y = s(x1) + s(x2) + ti(x1,x2)</code>. If you were to use <code>te()</code> instead, you would end up with some issues of confounding predictors (since the relationship captured by<code>s(x1)</code> is also captured in <code>te(x1,x2)</code>).</li>
+<li><code>gam()</code> has to fit the model multiple times with different smoothing parameters, and choose the best one. The way it scores them, by default, is to use GCV, which has been found to be less than ideal (tends to smooth too little). <strong>Unless you have a good reason not to, you want to use restricted maximum likelihood by giving the argument <code>method=&quot;REML&quot;</code>.</strong></li>
+<li>You can use the <code>family =</code> argument, like with glms, to choose different error distributions. Useful if your response variable suggests that error won’t be normally distributed. For example, you could use <code>family = poisson</code> for count data. <code>gam()</code> supports <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/family.html">all the standard error families that glm supports</a> plus <a href="https://stat.ethz.ch/R-manual/R-devel/library/mgcv/html/family.mgcv.html">a bunch of additional ones</a>. As with running GLMs, it’s easy to get lost in options, but generally not worth worrying about unless your residuals looks funny or you have reasons to expect specific error distributions. Note that many of the error distributions only work when using using <code>method=&quot;REML&quot;</code> or <code>method=ML</code>. Conveniently, we generally want to use REML anyways.</li>
+<li>you can add a predictor as a discrete random effects by choosing smoother basis of “re”, as in <code>y = s(x1) + s(x2, bs=&quot;re&quot;)</code>where <code>x2</code> is a random effect like site.</li>
+<li>You can add random slopes with the <code>by=</code> argument, as in <code>y=s(x1, by=x2)</code>, where <code>x2</code> is a blocking factor that you expect to change the curvature of the relationship between <code>y</code> and <code>x1</code>. For a large number of blocking factors, you may want to check out the <code>bs=&quot;fs&quot;</code> option.</li>
+<li>Plots of our gam models show 95% confidence intervals in dashed lines. When you plot a gam, you want to add two additional arguments which impact those plotted confidence intervals: <code>unconditional=TRUE</code>(this accounts for additional uncertainty because our smoothing parameter is estimated) and <code>seWithMean=TRUE</code> (which prevents weirdness where the confidence interval intersects the estimate for straight lines).</li>
+</ul>
+</div>
+<div id="model-checking" class="section level2">
+<h2>Model checking</h2>
+<p>To check on how well our model fits, we have several tools at our disposal.</p>
+<div id="gam.check" class="section level3">
+<h3>gam.check</h3>
+<p>We can use the <code>gam.check()</code> function to check out effective degrees of freedom, and determine if k is large enough. k is not really relevant if we’re using thin plate regression splines (the default, and generally the way to go) but is important if you are using cubic regression splines (not recommended unless you have a reason to).</p>
+<p><code>gam.check()</code> also produces four diagnostic plots that probably look familiar. We’re hoping to see a q-q plot with points close to the red line, residuals vs linear predictors with no clear trend (although if we’re using some error families like Poisson, we might expect to see some funny trend-less patterns due to responses taking on discrete values), a histogram of residuals that looks fairly normally distributed, and response vs. fitted values that looks like it falls along the 1:1 line. (I like to add the 1:1 line with <code>abline(a=0,b=1)</code> after calling <code>gam.check</code>, but it doesn’t work quite right in r markdown)</p>
+<pre class="r"><code>gam.check(fit.gam)</code></pre>
+<p><img src="ML_lesson_files/figure-html/gam%20diagnostics-1.png" width="672" /><img src="ML_lesson_files/figure-html/gam%20diagnostics-2.png" width="672" /><img src="ML_lesson_files/figure-html/gam%20diagnostics-3.png" width="672" /><img src="ML_lesson_files/figure-html/gam%20diagnostics-4.png" width="672" /></p>
+<pre><code>## 
+## Method: REML   Optimizer: outer newton
+## full convergence after 5 iterations.
+## Gradient range [-4.61835e-10,3.888383e-10]
+## (score -45.45628 &amp; scale 0.009346523).
+## Hessian positive definite, eigenvalue range [1.336723,29.0863].
+## Model rank =  10 / 10 
+## 
+## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
+## indicate that k is too low, especially if edf is close to k&#39;.
+## 
+##            k&#39;  edf k-index p-value
+## s(trich) 9.00 4.09    0.99    0.43</code></pre>
+<pre class="r"><code>#abline(a=0,b=1) #this doesn&#39;t behave right in rmarkdown</code></pre>
+<p>This looks pretty good!</p>
+</div>
+<div id="concurvity" class="section level3">
+<h3>Concurvity</h3>
+<p>One additional concern is concurvity, which is the non-linear equivalent to colinearity. We use the function <code>concurvity()</code> to test for concurvity. This function checks to see how well any given smooth term in the model could be represented by another term. Let’s make a very simple example: <code>x1</code> and <code>x2</code> are independent of each other, <code>x3</code> is just the square root of <code>x1</code> plus some nois. <code>y</code> is the sum of the sin of<code>x1</code> and the square of <code>x2</code>.</p>
+<pre class="r"><code>N=60 #number of data points
+x1=runif(N)*pi #random values between 0 and pi
+x2=runif(N)*2 #random values between 0 and 2
+x3 = sqrt(x1)+rnorm(n=N,mean=0, sd=.1)</code></pre>
+<p>Let’s plot our data to look at the problem.</p>
+<pre class="rplot"><code>pairs(cbind(x1,x2,x3))</code></pre>
+<p>We can see by looking at the pairwise plots that <code>x2</code> and <code>x3</code> are probably not independent. But it’s nice to quantify this, and to be able to check even if the relationship are more complicated. So first we fit our model.</p>
+<pre class="r"><code>y=sin(x1)*2+x2^2+rnorm(N,.5)
+data=data.frame(y=y,x1=x1,x2=x2,x3=x3)
+fit.example=gam(y ~ s(x1) + s(x2) + s(x3), method=&quot;REML&quot;, data=data)
+summary(fit.example)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## y ~ s(x1) + s(x2) + s(x3)
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   2.7892     0.1433   19.46   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##         edf Ref.df      F  p-value    
+## s(x1) 3.775  4.698  6.359 0.000116 ***
+## s(x2) 2.211  2.717 15.476 3.94e-07 ***
+## s(x3) 1.000  1.000  0.011 0.918292    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.562   Deviance explained = 61.3%
+## -REML = 96.207  Scale est. = 1.2327    n = 60</code></pre>
+<p>Now sometimes the model manages to figure out that <code>x3</code> isn’t important, other times it does not. Our results when we include <code>x3</code> are deceptive, though, since it’s so similar to <code>x1</code>. We can test for concurvity with</p>
+<pre class="r"><code>concurvity(fit.example)</code></pre>
+<pre><code>##                  para     s(x1)     s(x2)     s(x3)
+## worst    7.246558e-24 0.9761838 0.6530988 0.9757576
+## observed 7.246558e-24 0.7363113 0.2289953 0.9579376
+## estimate 7.246558e-24 0.9058340 0.2434567 0.9360357</code></pre>
+<p>This produces a matrix with a column for each smoothing term and a row for the worst (a very pessimistic measure), observed (potentially overoptimistic), and estimated (most reliable, but harder to understand derivation) concurvity. The concurvity measure ranges from 0 to 1, and represents how much the given smoother term can be represented by a sum of other smoother terms. We see that <code>s(x1)</code> and <code>s(x2)</code> have very high estimated concurvity, so we should be worried.</p>
+<p>In this case, it’s pretty clear which terms are messing up the concurvity. But in more complicated cases with multiple terms combining to contribute to other terms, it may not be so obvious. We can try to figure out which terms are causing the concurvity with</p>
+<pre class="r"><code>conc.list=concurvity(fit.example, full=FALSE)</code></pre>
+<p>This produces a list of three matrices of pairwise concurvity (how much of the one smoother term can be represented by the other smoother term), one for each of the concurvity metrics (worst, observed, estimated). We’ll focus on the <code>$estimate</code> matrix, since it’s the most reliable metric of concurvity.</p>
+<pre class="r"><code>conc.list$estimate</code></pre>
+<pre><code>##               para        s(x1)        s(x2)        s(x3)
+## para  1.000000e+00 4.796646e-28 5.021636e-28 1.037186e-26
+## s(x1) 2.044091e-25 1.000000e+00 1.297217e-01 9.204361e-01
+## s(x2) 1.188838e-25 1.438758e-01 1.000000e+00 1.344556e-01
+## s(x3) 4.187675e-24 8.928280e-01 7.944622e-02 1.000000e+00</code></pre>
+<p>We can treat this like we would a correlation matrix: each value is saying how much the column term can be represented by the row term. We can see that <code>x3</code> and <code>x1</code> have high values, while all other values are nicely small (except for the diagonal, which will necessarily be 1).</p>
+</div>
+</div>
+<div id="model-selection" class="section level2">
+<h2>Model selection</h2>
+<p>How do we decide what model to use (that is, which predictors to include)? Smoothing splines (e.g. what we’re doing in mgcv) will penalize models that have wiggly fits, but the penalty won’t turn a straight line into a flat line. That is, the wiggliness penalty doesn’t help you decide whether a predictor has a meaningful linear relationship with the response variable, or no relationship at all. We can add the <code>select = TRUE</code> argument to our <code>gam()</code> call to implement what’s called the <em>double shrinkage approach</em>. This will penalize fits that include a linear relationship with a slope that’s not zero. This means that spurious predictors will have their slope reduced to zero (this is analogous to the LASSO approach for linear regression, I believe). Let’s try that with our second experiment data. As a reminder, for this experiment we have a nonlinear relationship between trichome and biomass, a linear relationship between toxin and biomass, and no relationship for height or IQ.</p>
+<p>We’ll start by running the full model without worrying about model selection.</p>
+<pre class="r"><code>fit.exper2=gam(biomass.noise ~ s(trich)+s(toxin)+s(height)+s(IQ),
+               method=&quot;REML&quot;,
+               data=exper.2$data)
+plot(fit.exper2, unconditional=TRUE,seWithMean=TRUE)</code></pre>
+<p><img src="ML_lesson_files/figure-html/unnamed-chunk-1-1.png" width="672" /><img src="ML_lesson_files/figure-html/unnamed-chunk-1-2.png" width="672" /><img src="ML_lesson_files/figure-html/unnamed-chunk-1-3.png" width="672" /><img src="ML_lesson_files/figure-html/unnamed-chunk-1-4.png" width="672" /></p>
+<pre class="r"><code>summary(fit.exper2)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## biomass.noise ~ s(trich) + s(toxin) + s(height) + s(IQ)
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  1.91014    0.01492     128   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##             edf Ref.df      F  p-value    
+## s(trich)  3.091  3.826 11.199 2.36e-06 ***
+## s(toxin)  1.996  2.435 26.609 1.38e-09 ***
+## s(height) 1.000  1.000  0.797    0.377    
+## s(IQ)     1.000  1.000  0.740    0.395    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.728   Deviance explained = 76.7%
+## -REML = -24.768  Scale est. = 0.011134  n = 50</code></pre>
+<p>So that’s what it looks like when we run the model normally. Looking at the data, we might guess that height and IQ don’t matter. But let’s see what we get when we use the double shrinkage approach:</p>
+<pre class="r"><code>fit.exper2.sel=gam(biomass.noise ~ s(trich)+s(toxin)+s(height)+s(IQ),
+               method=&quot;REML&quot;,
+               select=TRUE,
+               data=exper.2$data)
+plot(fit.exper2.sel,unconditional=TRUE,seWithMean=TRUE)</code></pre>
+<p><img src="ML_lesson_files/figure-html/unnamed-chunk-2-1.png" width="672" /><img src="ML_lesson_files/figure-html/unnamed-chunk-2-2.png" width="672" /><img src="ML_lesson_files/figure-html/unnamed-chunk-2-3.png" width="672" /><img src="ML_lesson_files/figure-html/unnamed-chunk-2-4.png" width="672" /></p>
+<pre class="r"><code>summary(fit.exper2.sel)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## biomass.noise ~ s(trich) + s(toxin) + s(height) + s(IQ)
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  1.91014    0.01484   128.7   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##                 edf Ref.df     F  p-value    
+## s(trich)  2.775e+00      9 4.739 8.05e-08 ***
+## s(toxin)  2.004e+00      9 7.648 4.11e-12 ***
+## s(height) 5.288e-05      9 0.000    0.364    
+## s(IQ)     3.338e-05      9 0.000    0.413    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.731   Deviance explained = 75.7%
+## -REML = -32.175  Scale est. = 0.011008  n = 50</code></pre>
+<p>Here it’s very clear that mgcv has determined that height and IQ are spurious predictors, and so has removed them from the model. Depending on the random noise and the sample size, <code>gam</code> may <em>not</em> always remove spurious relationships - just like any other model selection process, it’s not a perfect process.</p>
+</div>
+<div id="significance-and-stuff" class="section level2">
+<h2>Significance and stuff</h2>
+<p>The p-value associated with a predictor is testing whether the fitted model is significantly better with that smooth term in it (this is NOT confidence that the exact shape of the smooth is correct). So it’s a complicated form of the chi-square test. But know that the p values are approximate.</p>
+<p>The anova function exists, and can be used on a single model or for comparing multiple models. <em>When comparing multiple models using anova, p values are <strong>very</strong> approximate, and the test is completely wrong if one of the models has a random effect.</em></p>
+<p>AIC can be used to compare models, but gets complicated and more approximate because the degrees of freedom for a smoothing spline are complicated. For this reason, it’s generally a better idea to use cross-validation if you can (takes longer to run, but more reliable).</p>
+</div>
+</div>
+<div id="random-forests" class="section level1">
+<h1>Random Forests</h1>
+<p>On the other side of the spectrum of machine learning, we have Random Forests - this can be applied to the same data as smoothing splines, but is more flexible and less interpretable. I don’t expect we’ll be able to get through this in class, but we can walk through it in this document.</p>
+<div id="theory-1" class="section level2">
+<h2>Theory</h2>
+<p>Because of time constraints, I’m going to skip over the details of how this works. The basic idea is that we create a bunch of decision trees, each of which involves creating a bunch of rules for cases (a simplified version might be: <code>if trichome &gt;3 and toxin &lt; 2, estimated biomass = 3</code>). These trees are unbiased and have a built ability to handle complicated interactions, but they’re extremely variable (sensitive to the specific data points used to generate the tree). However, it turns out that by averaging a bunch of these trees, we end up with a model that is unbiased and has far less variability than a single tree. Random forests are popular in data science projects where people are fishing for patterns in massive data sets. However, because the fitted model is a bunch of rules averaged together, it’s very difficult to understand the process the random forest model is representing (where “very difficult” may mean “impossible”).</p>
+</div>
+<div id="example-1" class="section level2">
+<h2>Example</h2>
+<p>Let’s see what happens if we try to fit experiment 2 (1 nonlinear, 1 linear, two spurious relationships) with a random forest.</p>
+<pre class="r"><code>require(randomForest)</code></pre>
+<pre><code>## Loading required package: randomForest</code></pre>
+<pre><code>## randomForest 4.6-14</code></pre>
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre><code>## 
+## Attaching package: &#39;randomForest&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:AICcmodavg&#39;:
+## 
+##     importance</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     margin</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine</code></pre>
+<pre class="r"><code>fit.rf=randomForest(biomass.noise ~ trich+toxin+height+IQ, data=exper.2$data)
+plot(fit.rf)</code></pre>
+<p><img src="ML_lesson_files/figure-html/fit%20random%20forest-1.png" width="672" /></p>
+<p>Calling <code>plot</code> for our model doesn’t tell us how the predictors matter - it tells how many trees are necessary to get our out-of-sample error below a given point. This is informing us about computational efficiency, not process.</p>
+<p>We can get a bit of information about process with a variable importance plot.</p>
+<pre class="r"><code>varImpPlot(fit.rf,
+           sort=T,
+           main=&quot;test&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/variance%20importance%20plots-1.png" width="672" /></p>
+<p>The x axis “IncNodePurity” is telling us how much including including each predictor in the model improves the purity (minimizes error) of our predictions. This tells us that toxins and trichomes are more valuable that IQ and height. Notice that even though height and IQ are spurious (We <em>know</em> they are, since we made up the data), they do show up as improving purity. Given how random forests work, this makes sense (there is going to some random relationships between those predictors and our response, and the random forest will find and use it). This isn’t great. But the spurious predictors do show up as mattering less, which is good.</p>
+<p>Perhaps the most useful of information is obtained from the partial dependence plots. These show – <em>in the context of our specific data set</em> – the contribution of one predictor to the response given the other predictor values of each data point.</p>
+<pre class="r"><code>partialPlot(fit.rf, pred.data=exper.2$data, x.var=&quot;trich&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/partial%20fits-1.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf, pred.data=exper.2$data, x.var=&quot;toxin&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/partial%20fits-2.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf, pred.data=exper.2$data, x.var=&quot;height&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/partial%20fits-3.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf, pred.data=exper.2$data, x.var=&quot;IQ&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/partial%20fits-4.png" width="672" /></p>
+<p>This looks sort of like the plots of our spline fits - predictor on x axis, response on y axis, wiggly line. The two spurious predictors are wiggly, but largely flat (look at the scale of the y axis). The trichome plot is showing a fairly smooth, clearly non-linear curve. I could believe that the toxin figure is showing a vaguely straight line, although it looks a lot like the curve for the trichome plot.</p>
+<div id="collin-exercise-does-sample-size-matter-for-random-forest" class="section level4">
+<h4>Collin exercise: does sample size matter for Random Forest?</h4>
+<p>I wanted to see how sample size impacted random forest fits, using our experiment 2 function <code>exper_2</code></p>
+<p>First let’s try a sample size of 15. To plot partial dependence, we’ll use the same data points as for our previous runs of experiment 2, but the model will be created with a reduced set.</p>
+<pre class="r"><code>exper.2.small=exper_2(15)
+fit.rf.small=randomForest(biomass.noise ~ trich+toxin+height+IQ, data=exper.2.small$data)
+partialPlot(fit.rf.small, pred.data=exper.2$data, x.var=&quot;trich&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/small%20experiment%20rf-1.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf.small, pred.data=exper.2$data, x.var=&quot;toxin&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/small%20experiment%20rf-2.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf.small, pred.data=exper.2$data, x.var=&quot;height&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/small%20experiment%20rf-3.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf.small, pred.data=exper.2$data, x.var=&quot;IQ&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/small%20experiment%20rf-4.png" width="672" /></p>
+<p>For comparison, how does the spline do?</p>
+<pre class="r"><code>fit.spl.small=gam(biomass.noise ~ s(trich)+s(toxin)+s(height)+s(IQ),
+               method=&quot;REML&quot;,
+               select=TRUE,
+               data=exper.2$data)
+plot(fit.spl.small,
+     unconditional=TRUE,seWithMean=TRUE)</code></pre>
+<p><img src="ML_lesson_files/figure-html/small%20experiment%20ss-1.png" width="672" /><img src="ML_lesson_files/figure-html/small%20experiment%20ss-2.png" width="672" /><img src="ML_lesson_files/figure-html/small%20experiment%20ss-3.png" width="672" /><img src="ML_lesson_files/figure-html/small%20experiment%20ss-4.png" width="672" /></p>
+<p>Both models have a lot more difficulty, clearly.</p>
+<p>What if we have 200 data points instead?</p>
+<pre class="r"><code>exper.2.large=exper_2(200)
+fit.rf.large=randomForest(biomass.noise ~ trich+toxin+height+IQ, data=exper.2.large$data)
+partialPlot(fit.rf.large, pred.data=exper.2$data, x.var=&quot;trich&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/large%20experiment%20rf-1.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf.large, pred.data=exper.2$data, x.var=&quot;toxin&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/large%20experiment%20rf-2.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf.large, pred.data=exper.2$data, x.var=&quot;height&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/large%20experiment%20rf-3.png" width="672" /></p>
+<pre class="r"><code>partialPlot(fit.rf.large, pred.data=exper.2$data, x.var=&quot;IQ&quot;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/large%20experiment%20rf-4.png" width="672" /></p>
+<p>Now our random forest looks a lot like our spline.</p>
+<p><strong>Important note:</strong> When comparing gam and random forest results, it’s worth bearing in mind that the data we generated fulfills the assumptions of the smoothing splines. For simplicity of interpretation, we decided that our underlying process involved the sum of smooth functions of independent predictors. For this reason, splines will do a good job here. However, if the underlying process is complex, involves lots of multi-way interactions, and perhaps is driven by a set of discrete rules rather than smooth functions, smoothing splines will have a much harder time than random forests.</p>
+<p>There are two key differences between the random forest and gam outputs, and they’re related. The gam models are more generalizable, but require more assumptions.</p>
+</div>
+</div>
+</div>
+<div id="comparing-smoothing-splines-with-random-forests" class="section level1">
+<h1>Comparing smoothing splines with random forests</h1>
+<div id="generalizability" class="section level2">
+<h2>Generalizability</h2>
+<p>When we look at the plots from a gam model, we know that our model’s prediction for that relationship (say between trichomes and biomass) will be the same regardless of the values of other data points. We can say “Our model shows an s-shaped relationship between trichome density and biomass.” We know this because we coded it in there. We said to fit <code>biomass ~ s(trichomes)+stuff</code>. For the random forest partial dependence plots, the curve we see is <em>entirely dependent on the values of the other predictors for each data point</em>. That’s because a random forest is this black box that averages a bunch of rules to map predictors to response, and the partial dependence plot shows how much the predicted responses of a specific data set change because of the values of the given predictor <em>given all the other predictor values</em>. If we change the other predictor values, our data points fall into different rules, and our curve changes.</p>
+<p>As an example, let’s look at how our <code>partialPlot</code> of trichomes changes if we take the same data points, and change all the predictor values except for trichomes.</p>
+<pre class="r"><code>set.seed(100)
+# partialPlot(fit.rf, pred.data=exper.2$data, x.var=&quot;trich&quot;)
+new.dat=exper.2$data
+new.dat$toxin=new.dat$toxin+runif(nrow(new.dat))*1
+new.dat$IQ=new.dat$IQ+runif(nrow(new.dat))*1-10
+new.dat$height=new.dat$height+runif(nrow(new.dat))*1-15
+partialPlot(fit.rf, pred.data=exper.2$dat, x.var=&quot;trich&quot;,ylim=c(1.5,2.1),col=&#39;blue&#39;)
+partialPlot(fit.rf, pred.data=new.dat, x.var=&quot;trich&quot;,add=TRUE,col=&#39;red&#39;)</code></pre>
+<p><img src="ML_lesson_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>This produces a noticeable, but not huge, difference. The red line (partial dependence plot drawn using the new data) looks more linear than the blue line (partial dependence plot using the original data), in addition to being higher. If we had a more complicated data set with more predictors – even spurious ones –, changing the data used to draw the partial dependence plots would generally cause a more dramatic change in the partial dependence curve. This means that we can’t generalize our trends from random forests, especially for the complicated data sets where they are most useful.</p>
+</div>
+<div id="assumptions" class="section level2">
+<h2>Assumptions</h2>
+<p>The <em>reason</em> we can generalize the gam and not the random forest is that we explicitly assumed in the gam model that our response was the sum of independent smooths of each of our predictors. We are assuming there aren’t complicated multi-way interactions, we’re assuming that smooth functions are more likely than wiggly ones. These assumptions are convenient for understanding process, but can also be limiting. Much like the general trade-off between standard statistical tools and machine learning ones, the decision to use smoothing splines or random forests depends on whether you want to focus on estimating <span class="math inline">\(\hat{Y}\)</span> or <span class="math inline">\(\hat{\beta}\)</span>.</p>
+</div>
+<div id="wrapping-up" class="section level2">
+<h2>Wrapping up</h2>
+<p>The processes we’re interested in as biologists are often ones where we have reason to believe that the underlying processes can be captured with smoothing splines. They are, after all, an even more flexible and less assumption-ridden tool than our frequently-used linear, mixed, and generalized linear models. The decision on what tool to use is going to depend a lot on what you want to do (predict vs interpret) and what constraints you think there might be on the underlying biology.</p>
+</div>
+</div>
+<div id="practice" class="section level1">
+<h1>Practice</h1>
+<p>If you want more practice, I’ve generated three more experiment functions to play with. Those functions are generated in <code>experiments.R</code>, and I’ve saved them in <code>thefield.Rdata</code>. You can open <code>thefield.Rdata</code> to have access to the functions, and call them to generate data sets. You can then try your hand at determining the underlying processes using splines and random forests. And you can open <code>experiments.R</code> to look at the actual processes that generate the data to see how you did.</p>
+<p>Each of the functions works similar to <code>exper_1</code> and <code>exper_2</code> above: it takes an argument <code>n</code>, and an optional argument <code>sd</code>. <code>n</code> determines how many data points are generated, and <code>sd</code> impacts the amount of noise in the system. Generally you can leave <code>sd</code> alone. If you’re having trouble finding the pattern, try upping your sample size by using a larger n; alternately, decrease <code>sd</code>. The functions return a data frame of the data gathered during the experiment.</p>
+<p>In the spirit of experiments and not at all because I need to put my time into other projects, I won’t be analyzing these data sets ahead of time. So it’s entirely possible that, much like with real data, you’ll run into unforeseen challenges. However, in the name of fairness/sanity, I’m not going to litter the data with NAs or extreme outliers representing erroneous recording. Real data often has those (right? It’s not just me?), but this isn’t meant to be an exercise in cleaning data.</p>
+<div id="exper_plots" class="section level2">
+<h2>exper_plots</h2>
+<p>We carry out the aphid experiment as we did in exper_2, only this time our samples are spread over 10 different plots. There’s no consistent differences between the plots, but each one likely provides different microhabitats.</p>
+</div>
+<div id="exper_cat" class="section level2">
+<h2>exper_cat</h2>
+<p>We put caterpillars on milkweed plants, leave them on the plant for a week, and see who survives (<code>$survive</code>). We also measure five plant traits: trichomes (<code>$trich</code>), latex, toxin, height, and IQ. Note that <code>sd</code> here doesn’t really change things much, since we’re using a binary response, so random noise is already incorporated.</p>
+<p>Because our response is binary, each data point doesn’t contain very much information. For this reason, you may find that you need larger sample sizes to work out the relationships here. (this is always the case with binary data, not just a consequence of the specifics of our simulation)</p>
+</div>
+<div id="exper_obs" class="section level2">
+<h2>exper_obs</h2>
+<p><em>This one is going to be a bit more of a challenge - I’m trying to emulate the complications you might run into with observational data of a complex process.</em></p>
+<p>We go for walks through a large field on a weekly basis, counting the number of <em>Labidomera clivicolis</em> present on <code>n</code> different <em>Asclepias syriaca</em> plants chosen at random. We also measure a ton of different predictors. For the sake of sanity, I’m going to assume that we are running slightly different transects each time, so there’s no chance of sampling the same plant twice. We’re mostly interested in predicting when and where to find the most labidomera next year. Here the argument <code>n</code> is how many samples we make per WEEK of sampling - we’re going to sample that many for each of 10 weeks of the summer.</p>
+<p>The predictors we measure are: * <code>count</code>: response variable. How many labidomera beetles do we find on the plant? (note: these are much higher than you would find in an actual field survey) * <code>jdate</code>: Julian date of our sampling. Since we’re sampling across 10 weeks, we will have 10 unique jdates. * <code>rainfall</code>: total precipitation in the last week, let’s say in units of mm. Not that units matter. * <code>humidity</code>: %humidity when we sample, measured once per sample day. Yes, these are very high for any normal field site. * <code>trich</code>: trichome density * <code>latex</code>: amount of latex measured in the plants * <code>toxin</code>: level of toxins in the plants. * <code>SLA</code>: Average specific leaf area for the plant * <code>length</code>: length of leaf in centimeters. * <code>shape</code>: shape of leaf (some are rounded like an oval, others are pointy like a spear head) * <code>color</code>: color of the leaves. There’s a surprising amount of variation in the plants! * <code>height</code>: height of plant in meters.</p>
+<p>You may find that you want multiple years of data. You can easily gather this by calling <code>exper_obs</code> multiple times and combining the resulting data frames with <code>rbind()</code>. I haven’t added a random effect for year (although I probably should), so you don’t have to identify which year the data came from when you do this.</p>
+<div id="to-test-your-predictions-the-process-is" class="section level3">
+<h3>To test your predictions, the process is</h3>
+<ol style="list-style-type: decimal">
+<li>Construct the model you think will do the best (probably an iterative process of trying different options)</li>
+<li>Generate the next year’s data set by calling exper_obs again.</li>
+<li>Use the <code>predict()</code> function. This exists for both <code>gam</code> and <code>randomForest</code> objects. The syntax for both of them is <code>predict(object=fittedmModelName, newdata=newExperimentalData)</code></li>
+<li>You can then plot predicted versus actual counts, or do a regression, or however you like to compare them.</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
